@@ -1,9 +1,12 @@
 package com.xycode.leetcode;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
+import kotlin.collections.ArraysKt;
 import org.testng.annotations.Test;
 import sun.net.www.http.HttpClient;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.*;
@@ -13,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.IntConsumer;
+import java.util.stream.Stream;
 
 /**
  * ClassName: leetcode1116
@@ -610,8 +614,9 @@ public class LeetCodeEx {
 
     @Test
     public static void test_1(){
-        System.out.println(Collections.binarySearch(Arrays.asList(2,4,6,8,10,10,12,14,16),4));
-        Arrays.asList(2,4,6,8,10,10,12,14,16).stream().filter(c -> c>=10).map(c->(char)(c+'a')).forEach(System.out::print);
+        int[] array={2,4,6,8,10,10,12,14,16};
+        System.out.println(Arrays.binarySearch(array,6));
+        Stream.of(2,4,6,8,10,10,12,14,16).filter(c -> c>=10).map(c->(char)(c+'a')).forEach(System.out::println);
         System.out.println(MessageFormat.format("\n{0}-{1}","ss","dd"));
 
         List<Integer> l=new ArrayList<>(Arrays.asList(2,4,6,8,10,10,12,14,16));
