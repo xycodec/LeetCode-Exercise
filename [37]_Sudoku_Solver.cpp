@@ -1,4 +1,7 @@
 //https://leetcode.com/problems/sudoku-solver/
+#include <vector>
+#include <iostream>
+using namespace std;
 class Solution {
 public:
     //map<int,bool> mp_row[9],mp_col[9],mp_9[3][3];
@@ -10,7 +13,6 @@ public:
                 mp_row[i][j]=false;
                 mp_col[i][j]=false;
             }
-            
         }
         for(int i=0;i<3;++i){
             for(int j=0;j<3;++j){

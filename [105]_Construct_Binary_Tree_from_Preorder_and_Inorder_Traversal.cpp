@@ -25,9 +25,9 @@ public:
         int rootValue=*preorder_s;//前序遍历的第一个数字就是根节点的值
         TreeNode *root=new TreeNode(rootValue);
         if(preorder_s==preorder_e){//区间只有一个元素,这时左/右节点就完全确定了
-            if(inorder_s==inorder_e&&*preorder_s==*preorder_e){
+            if(inorder_s==inorder_e){
                 return root;
-            }else{//实际上两个区间不匹配了,也就是illegal input
+            }else{//实际上两个序列不匹配了,也就是illegal input
                 return nullptr;
             }
         }
@@ -38,7 +38,7 @@ public:
             ++rootInorder;
         }
 
-        if(rootInorder==inorder_e&&*rootInorder!=rootValue){//实际上两个区间不匹配了,也就是illegal input
+        if(rootInorder==inorder_e){//实际上两个区间不匹配了,也就是illegal input
             return nullptr;
         }
 

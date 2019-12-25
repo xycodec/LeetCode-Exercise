@@ -1,3 +1,9 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <cstring>
+using namespace std;
 //https://leetcode.com/problems/spiral-matrix/
 class Solution {
 public:
@@ -61,3 +67,15 @@ public:
         return ans;
     }
 };
+
+int main(){
+    vector<int> v={1,2,3,4};
+    vector<int> v2=v;
+    swap(*v.begin(),*(v.begin()+1));
+    
+    for(int item:v2){
+        cout<<item<<" ";
+    }
+    cout<<endl;
+
+}
