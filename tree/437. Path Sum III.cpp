@@ -3,6 +3,7 @@
 #include <set>
 #include <algorithm>
 #include <queue>
+#include <winsock.h> //windows 的Socket库,里面包含select()这种多路I/O
 using namespace std;
 struct TreeNode {
     int val;
@@ -36,8 +37,8 @@ int main(){
     cout<<"..."<<endl;
     string s="01234";
     cout<<(s[5]=='\0'?"true":"false")<<endl;
-    // string s="*a*";
-    // replace_if(s.begin(),s.end(),"*",".*");
+
+    
 
     return 0;
 }

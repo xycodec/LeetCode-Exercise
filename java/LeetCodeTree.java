@@ -12,7 +12,7 @@ import java.util.*;
  * @Description: this is description of the LeetCodeTree class
  **/
 public class LeetCodeTree {
-class TreeNode {
+    class TreeNode {
         int val;
         TreeNode left;
         TreeNode right;
@@ -67,6 +67,8 @@ class TreeNode {
 
         return build(pre,in);
     }
+
+
     void inorderTraversal(TreeNode root,List<Integer> ans) {
         if(root==null) return;
         inorderTraversal(root.left,ans);
@@ -408,6 +410,7 @@ class TreeNode {
 
     @Test
     public void testRangeSumBST(){
+
         System.out.println(rangeSumBST(deserialize("18 9 27 6 15 24 30 3 null 12 null 21"),18,24));
     }
 
@@ -452,57 +455,37 @@ class TreeNode {
     }
 
 
-
-     // Definition for a Node.
-     class Node {
-         public int val;
-         public List<Node> neighbors;
-
-         public Node() {}
-
-         public Node(int _val,List<Node> _neighbors) {
-             val = _val;
-             neighbors = _neighbors;
-         }
-    }
-
-    Set<Integer> s=new HashSet<>();
-    void dfs(Node node,Map<Integer,List<Integer> > mp){
-        for(Node tmp:node.neighbors){
-            if(!mp.containsKey(node.val)){
-                mp.put(node.val,new ArrayList<>());
-            }
-            mp.get(node.val).add(tmp.val);
-//            System.out.println(node.val+" : "+tmp.val);
-            if(!s.contains(tmp.val)){
-                s.add(tmp.val);
-                dfs(tmp,mp);
-            }
+    //根据一个有序数组建立一个平衡BST
+    TreeNode buildBST(List<Integer> inorder){
+        if(inorder.isEmpty()) return null;
+        int rootIndex=inorder.size()/2;
+        int rootValue=inorder.get(rootIndex);//每次取中位数,将其作为根节点,其左边就是左子树序列,右边就是右子树序列
+        TreeNode root=new TreeNode(rootValue);
+        if(inorder.size()==1){
+            return root;
         }
+
+        root.left=buildBST(inorder.subList(0,rootIndex));
+        root.right=buildBST(inorder.subList(rootIndex+1,inorder.size()));
+
+        return root;
     }
 
-    //133. Clone Graph
-    public Node cloneGraph(Node node) {
-        s.add(node.val);
-        Map<Integer,List<Integer>> mp=new HashMap<>();
-        dfs(node,mp);
-        Map<Integer,Node> mp2=new HashMap<>();
-        Node first=new Node(node.val,new ArrayList<>());
-        mp2.put(first.val,first);
-        for(int val:mp.keySet()){
-            if(!mp2.containsKey(val)){
-                Node tmp=new Node(val,new ArrayList<>());
-                mp2.put(val,tmp);
-            }
-            for(int neighborVal:mp.get(val)){
-                if(!mp2.containsKey(neighborVal)){
-                    Node tmp=new Node(neighborVal,new ArrayList<>());
-                    mp2.put(neighborVal,tmp);
-                }
-                mp2.get(val).neighbors.add(mp2.get(neighborVal));
-            }
-
+    //108. Convert Sorted Array to Binary Search Tree
+    public TreeNode sortedArrayToBST(int[] nums) {
+        if(nums==null||nums.length==0) return null;
+        List<Integer> inorder=new ArrayList<>();
+        for(int i=0;i<nums.length;++i){
+            inorder.add(nums[i]);
         }
-        return first;
+
+        return buildBST(inorder);
     }
+
+    @Test
+    public void testSortedArrayToBST(){
+        int[] array={-10,-3,0,5,9};
+        System.out.println(serialize(sortedArrayToBST(array)));
+    }
+
 }

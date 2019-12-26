@@ -612,6 +612,373 @@ public class LeetCodeEx {
         }
     }
 
+    // Definition for a Node.
+    class Node {
+        public int val;
+        public List<Node> neighbors;
+
+        public Node() {}
+
+        public Node(int _val,List<Node> _neighbors) {
+            val = _val;
+            neighbors = _neighbors;
+        }
+    }
+
+    Set<Integer> s=new HashSet<>();
+    void dfs(Node node,Map<Integer,List<Integer> > mp){
+        for(Node tmp:node.neighbors){
+            if(!mp.containsKey(node.val)){
+                mp.put(node.val,new ArrayList<>());
+            }
+            mp.get(node.val).add(tmp.val);
+//            System.out.println(node.val+" : "+tmp.val);
+            if(!s.contains(tmp.val)){
+                s.add(tmp.val);
+                dfs(tmp,mp);
+            }
+        }
+    }
+
+    //133. Clone Graph
+    public Node cloneGraph(Node node) {
+        s.add(node.val);
+        Map<Integer,List<Integer>> mp=new HashMap<>();
+        dfs(node,mp);
+        Map<Integer,Node> mp2=new HashMap<>();
+        Node first=new Node(node.val,new ArrayList<>());
+        mp2.put(first.val,first);
+        for(int val:mp.keySet()){
+            if(!mp2.containsKey(val)){
+                Node tmp=new Node(val,new ArrayList<>());
+                mp2.put(val,tmp);
+            }
+            for(int neighborVal:mp.get(val)){
+                if(!mp2.containsKey(neighborVal)){
+                    Node tmp=new Node(neighborVal,new ArrayList<>());
+                    mp2.put(neighborVal,tmp);
+                }
+                mp2.get(val).neighbors.add(mp2.get(neighborVal));
+            }
+
+        }
+        return first;
+    }
+
+
+    //715. Range Module
+    class RangeModule {
+        int[][] intervals=null;//维护不相交的区间集合
+        public RangeModule() {
+
+        }
+
+        public void show(){
+            if(intervals==null) return;
+            for(int i=0;i<intervals.length;++i){
+                System.out.print("["+intervals[i][0]+", "+intervals[i][1]+"] ");
+            }
+            System.out.println();
+        }
+
+        private int[][] insert(int[] newInterval) {
+            int[][] ans;
+            if(intervals==null||intervals.length==0){
+                ans=new int[1][2];
+                ans[0][0]=newInterval[0];
+                ans[0][1]=newInterval[1];
+                return ans;
+            }
+            final int len=intervals.length;
+            if(newInterval[1]<intervals[0][0]){
+                ans=new int[1+len][2];
+                ans[0][0]=newInterval[0];
+                ans[0][1]=newInterval[1];
+                for(int i=1;i<=len;++i){
+                    ans[i]=intervals[i-1];
+                }
+                return ans;
+            }
+            if(newInterval[0]>intervals[len-1][1]){
+                ans=new int[1+len][2];
+                for(int i=0;i<len;++i){
+                    ans[i]=intervals[i];
+                }
+                ans[len][0]=newInterval[0];
+                ans[len][1]=newInterval[1];
+                return ans;
+            }
+
+            int l=-1,r=Integer.MAX_VALUE;
+            if(newInterval[0]>=intervals[0][0]){
+                for(int i=0;i<len;++i){
+                    if((newInterval[0]>=intervals[i][0]&&newInterval[0]<=intervals[i][1])|| //within interval
+                            (i!=len-1&&newInterval[0]>intervals[i][1]&&newInterval[0]<intervals[i+1][0])){ //between intervals
+                        l=i;
+                        break;
+                    }
+                }
+            }
+
+            if(newInterval[1]<=intervals[len-1][1]){
+                for(int i=len-1;i>=0;--i){
+                    if((newInterval[1]>=intervals[i][0]&&newInterval[1]<=intervals[i][1])|| //within interval
+                            (i!=len-1&&newInterval[1]>intervals[i][1]&&newInterval[1]<intervals[i+1][0])){ //between intervals
+                        r=i;
+                        break;
+                    }
+                }
+            }
+            if(l==-1&&r==Integer.MAX_VALUE){
+                ans=new int[1][2];
+                ans[0][0]=newInterval[0];
+                ans[0][1]=newInterval[1];
+            }else if(l==-1&&r<Integer.MAX_VALUE){
+                ans=new int[len-r][2];
+                ans[0][0]=newInterval[0];
+                ans[0][1]=Math.max(intervals[r][1],newInterval[1]);
+
+                for(int i=r+1;i<len;++i){
+                    ans[i-r][0]=intervals[i][0];
+                    ans[i-r][1]=intervals[i][1];
+                }
+            }else if(l>=0&&r==Integer.MAX_VALUE){
+                if(newInterval[0]>intervals[l][1]){//between intervals
+                    ans=new int[l+2][2];
+                    for(int i=0;i<=l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l+1][0]=newInterval[0];
+                    ans[l+1][1]=newInterval[1];
+                }else{//within interval
+                    ans=new int[l+1][2];
+                    for(int i=0;i<l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l][0]=intervals[l][0];
+                    ans[l][1]=newInterval[1];
+                }
+            }else{
+                if(newInterval[0]>intervals[l][1]){//between intervals
+                    ans=new int[len-(r-l)+1][2];
+                    for(int i=0;i<=l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l+1][0]=newInterval[0];
+                    ans[l+1][1]=Math.max(intervals[r][1],newInterval[1]);
+                    for(int i=1;i<len-r;++i){
+                        ans[l+1+i][0]=intervals[r+i][0];
+                        ans[l+1+i][1]=intervals[r+i][1];
+                    }
+                }else{//within interval
+                    ans=new int[len-(r-l)][2];
+                    for(int i=0;i<l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l][0]=intervals[l][0];
+                    ans[l][1]=Math.max(intervals[r][1],newInterval[1]);
+                    for(int i=1;i<len-r;++i){
+                        ans[l+i][0]=intervals[r+i][0];
+                        ans[l+i][1]=intervals[r+i][1];
+                    }
+                }
+
+            }
+            return ans;
+        }
+
+        private int[][] remove(int[] rmInterval){
+            if(intervals==null||intervals.length==0) return intervals;
+            final int len=intervals.length;
+            if(rmInterval[1]<intervals[0][0]||rmInterval[0]>intervals[len-1][1]){
+                return intervals;
+            }
+            int[][] ans;
+            int l=-1,r=Integer.MAX_VALUE;
+            if(rmInterval[0]>=intervals[0][0]){
+                for(int i=0;i<len;++i){
+                    if((rmInterval[0]>=intervals[i][0]&&rmInterval[0]<=intervals[i][1])|| //within interval
+                            (i!=len-1&&rmInterval[0]>intervals[i][1]&&rmInterval[0]<intervals[i+1][0])){ //between intervals
+                        l=i;
+                        break;
+                    }
+                }
+            }
+
+            if(rmInterval[1]<=intervals[len-1][1]){
+                for(int i=len-1;i>=0;--i){
+                    if((rmInterval[1]>=intervals[i][0]&&rmInterval[1]<=intervals[i][1])|| //within interval
+                            (i!=len-1&&rmInterval[1]>intervals[i][1]&&rmInterval[1]<intervals[i+1][0])){ //between intervals
+                        r=i;
+                        break;
+                    }
+                }
+            }
+
+            if(l==-1&&r==Integer.MAX_VALUE){
+                return null;
+            }else if(l==-1&&r<Integer.MAX_VALUE){
+                if(rmInterval[1]>=intervals[r][1]){
+                    ans=new int[len-r-1][2];
+                    for(int i=r+1;i<len;++i){
+                        ans[i-r-1][0]=intervals[i][0];
+                        ans[i-r-1][1]=intervals[i][1];
+                    }
+                }else{
+                    ans=new int[len-r][2];
+                    ans[0][0]=rmInterval[1]+1;
+                    ans[0][1]=intervals[r][1];
+
+                    for(int i=r+1;i<len;++i){
+                        ans[i-r][0]=intervals[i][0];
+                        ans[i-r][1]=intervals[i][1];
+                    }
+                }
+            }else if(l>=0&&r==Integer.MAX_VALUE){
+                ans=new int[l+1][2];
+                if(rmInterval[0]>intervals[l][1]){
+                    for(int i=0;i<=l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                }else{
+                    for(int i=0;i<l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l][0]=intervals[l][0];
+                    ans[l][1]=rmInterval[0]-1;
+                }
+            }else{
+                if(rmInterval[1]>=intervals[r][1]){//between intervals
+                    ans=new int[len-(r-l)][2];
+                    for(int i=0;i<l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l][0]=intervals[l][0];
+                    ans[l][1]=rmInterval[0]>intervals[l][1]?intervals[l][1]:rmInterval[0]-1;
+                    for(int i=1;i<len-r;++i){
+                        ans[l+i][0]=intervals[r+i][0];
+                        ans[l+i][1]=intervals[r+i][1];
+                    }
+                }else{//within interval
+                    ans=new int[len-(r-l)+1][2];
+                    for(int i=0;i<l;++i){
+                        ans[i][0]=intervals[i][0];
+                        ans[i][1]=intervals[i][1];
+                    }
+                    ans[l][0]=intervals[l][0];
+                    ans[l][1]=rmInterval[0]>intervals[l][1]?intervals[l][1]:rmInterval[0]-1;
+                    ans[l+1][0]=rmInterval[1]+1;
+                    ans[l+1][1]=intervals[r][1];
+                    for(int i=1;i<len-r;++i){
+                        ans[l+1+i][0]=intervals[r+i][0];
+                        ans[l+1+i][1]=intervals[r+i][1];
+                    }
+                }
+
+            }
+            return ans;
+
+        }
+        public void addRange(int left, int right) {
+            int[] newInterval={left,right-1};
+            intervals=insert(newInterval);
+        }
+
+        public boolean queryRange(int left, int right) {
+            if(intervals==null) return false;
+            final int len=intervals.length;
+            --right;
+            if(len==0||left>intervals[len-1][1]||right<intervals[0][0]) return false;
+            for(int i=0;i<len;++i){
+                if(left>=intervals[i][0]&&left<=intervals[i][1]){
+                    if(right<=intervals[i][1]) return true;
+                    if(i+1<len&&intervals[i][1]==intervals[i+1][0]-1){//相邻的两个区间可以合并
+                        int pos=i;
+                        while(pos+1<len){
+                            if(intervals[pos][1]==intervals[pos+1][0]-1){//区间可以合并
+                                if(right<=intervals[pos+1][1]) return true;//并且落在合并的区间内
+                                else ++pos;//继续搜索是否有可以合并的区间
+                            }else return false;
+                        }
+                    }else return false;
+                }
+            }
+            return false;
+        }
+
+        public void removeRange(int left, int right) {
+            int[] rmInterval={left,right-1};
+            intervals=remove(rmInterval);
+        }
+
+    }
+
+    /**
+     * Your RangeModule object will be instantiated and called as such:
+     * RangeModule obj = new RangeModule();
+     * obj.addRange(left,right);
+     * boolean param_2 = obj.queryRange(left,right);
+     * obj.removeRange(left,right);
+     */
+
+    @Test
+    public void testRangeModule(){
+        RangeModule rangeModule=new RangeModule();
+        rangeModule.addRange(2,6);
+        rangeModule.addRange(2,8);
+        rangeModule.addRange(4,7);
+        rangeModule.addRange(8,9);
+        rangeModule.removeRange(1,10);
+        rangeModule.removeRange(3,5);
+        rangeModule.removeRange(1,2);
+        rangeModule.show();
+//        System.out.println(rangeModule.queryRange(1, 7));
+//        System.out.println(rangeModule.queryRange(2, 9));
+//        System.out.println(rangeModule.queryRange(4, 6));
+
+    }
+
+
+    //567. Permutation in String
+    private String sorted(String s){
+        char[] c=s.toCharArray();
+        Arrays.sort(c);
+        return String.valueOf(c);
+    }
+
+    private boolean check(String a,int[] mCount){
+        int[] aCount=new int[26];
+        for(int i=0;i<a.length();++i) ++aCount[a.charAt(i)-'a'];
+        for(int i=0;i<26;++i){
+            if(aCount[i]!=mCount[i]) return false;
+        }
+        return true;
+    }
+
+    public boolean checkInclusion(String s1, String s2) {
+        if(s1==null||s1.length()==0) return true;
+        if(s2==null||s2.length()==0) return false;
+        int[] mCount=new int[26];
+        int len=s1.length();
+        for(int i=0;i<len;++i) ++mCount[s1.charAt(i)-'a'];
+        for(int i=0;i<s2.length()-len+1;++i){
+            if(check(s2.substring(i,i+len),mCount)) return true;
+        }
+        return false;
+    }
+
+    @Test
+    public void testCheckInclusion(){
+        System.out.println(checkInclusion("adc","dcda"));
+    }
+
     @Test
     public static void test_1(){
         int[] array={2,4,6,8,10,10,12,14,16};
