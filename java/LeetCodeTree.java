@@ -488,4 +488,188 @@ public class LeetCodeTree {
         System.out.println(serialize(sortedArrayToBST(array)));
     }
 
+
+    void recoverDfs(TreeNode root,int depth,List<List<Integer>> lists) {
+        if(depth<lists.size()&&!lists.get(depth).isEmpty()){
+            root.left=new TreeNode(lists.get(depth).get(0));
+            lists.get(depth).remove(0);
+            recoverDfs(root.left,depth+1,lists);
+            if(lists.get(depth).isEmpty()) {
+                root.right=new TreeNode(lists.get(depth).get(lists.get(depth).size()-1));
+                lists.get(depth).remove(lists.get(depth).size()-1);
+                recoverDfs(root.right,depth+1,lists);
+            }
+        }
+    }
+
+
+    //1028. Recover a Tree From Preorder Traversal
+    //tip: 基于这样一个事实: 前序遍历序列中,对于同一depth的节点来说,必定是从左到右顺序的(只是可能混进了一些更深depth的节点遍历)
+    public TreeNode recoverFromPreorder(String S) {
+        if(S==null||S.length()==0) return null;
+        int len=S.length();
+        Map<Integer, TreeNode> map = new HashMap<>();
+        int pos = 0;
+        while(pos < len && S.charAt(pos) != '-') pos++;
+        TreeNode root = new TreeNode(Integer.parseInt(S.substring(0,pos)));
+        map.put(0, root);
+        while(pos<len) {
+            int prev = pos;
+            while(S.charAt(pos) == '-') pos++;
+            int depth = pos - prev - 1;
+            TreeNode parent = map.get(depth);//先序遍历保证深度从小到大,所以这里不可能是null
+            prev = pos;
+            while(pos < len && S.charAt(pos) != '-') pos++;
+            TreeNode child = new TreeNode(Integer.parseInt(S.substring(prev,pos)));
+            if(parent.left == null) parent.left = child;//如果只有一个节点,那么左子节点优先,根据先序遍历的规律: 根->左->右,并且这里的depth将序列划分好了,同一depth一定都是 根->左->右,
+            else parent.right = child;
+            map.put(depth+1,child);//实际上随着前序遍历,同一depth上的节点会被不断覆盖
+        }
+        return root;
+    }
+
+
+    //N元树
+    class Node {
+        public int val;
+        public List<Node> children;
+
+        public Node() {}
+
+        public Node(int _val) {
+            val = _val;
+        }
+
+        public Node(int _val, List<Node> _children) {
+            val = _val;
+            children = _children;
+        }
+    }
+
+    @Test
+    public void testRecoverFromPreorder(){
+        System.out.println(serialize(recoverFromPreorder("1-401--349---90--88")));
+    }
+
+    //429. N-ary Tree Level Order Traversal
+    public List<List<Integer>> levelOrder(Node root) {
+        List<List<Integer>> ans=new ArrayList<>();
+        if(root==null) return ans;
+        Queue<Node> q=new LinkedList<>();
+        Queue<Integer> levelQ=new LinkedList<>();
+        q.add(root);
+        levelQ.add(0);
+        while(!q.isEmpty()){
+            Node tmpNode=q.poll();
+            int level=levelQ.poll();
+            if(level==ans.size()) ans.add(new ArrayList<>());
+            ans.get(level).add(tmpNode.val);
+            for (Node child : tmpNode.children) {
+                q.add(child);
+                levelQ.add(level+1);
+            }
+        }
+        return ans;
+    }
+
+
+    @Test
+    public void testFindRedundantConnection(){
+        int[][] array= {{5,2},{5,1},{3,1},{3,4},{3,5}};
+        int[] ans=findRedundantConnection(array);
+        System.out.println(ans[0]+", "+ans[1]);
+    }
+
+    //684. Redundant Connection
+    public int[] findRedundantConnection(int[][] edges) {
+        if(edges==null||edges.length==0) return null;
+        //record all edges that are not inside the ring
+        Set<Integer> s=new HashSet<>();
+        int[] degree=new int[edges.length+1];
+        while(true){
+            boolean flag=false;
+            for(int i=0;i<edges.length;++i){
+                if(!s.contains(edges[i][0])&&!s.contains(edges[i][1])){
+                    degree[edges[i][0]]+=1;
+                    degree[edges[i][1]]+=1;
+                }
+            }
+            for(int i=1;i<=edges.length;++i){
+                if(degree[i]==1){
+                    s.add(i);
+                    flag=true;
+                }
+                degree[i]=0;
+            }
+            if(!flag) break;
+        }
+
+        int[] ans=new int[2];
+        for(int i=edges.length-1;i>=0;--i){
+            if(!s.contains(edges[i][0])&&!s.contains(edges[i][1])){
+                ans[0]=edges[i][0];
+                ans[1]=edges[i][1];
+                return ans;
+            }
+        }
+        return null;
+    }
+
+
+    //685. Redundant Connection II
+    public int[] findRedundantDirectedConnection(int[][] edges) {
+        if(edges==null||edges.length==0) return null;
+        //将非环内的边全部记录下来
+        Set<Integer> s=new HashSet<>();
+        int[] degree=new int[edges.length+1];
+        while(true){
+            boolean flag=false;
+            for (int[] edge : edges) {
+                if (!s.contains(edge[0]) && !s.contains(edge[1])) {
+                    degree[edge[0]] += 1;
+                    degree[edge[1]] += 1;
+                }
+            }
+            for(int i=1;i<=edges.length;++i){
+                if(degree[i]==1){
+                    s.add(i);
+                    flag=true;
+                }
+                degree[i]=0;//清空
+            }
+            if(!flag) break;
+        }
+
+        for (int[] edge : edges) {
+            degree[edge[1]] += 1;//入度
+        }
+        int[] ans=new int[2];
+        for(int i=edges.length-1;i>=0;--i){
+            if(!s.contains(edges[i][0])&&!s.contains(edges[i][1])){//一个节点有多个parent
+                if(degree[edges[i][1]]>1){
+                    ans[0]=edges[i][0];
+                    ans[1]=edges[i][1];
+                    return ans;
+                }
+            }
+        }
+
+        //执行到这儿,说明图中parent仅有一个环,那就从后往前删掉第一条符合的边即可
+        for(int i=edges.length-1;i>=0;--i){
+            if(!s.contains(edges[i][0])&&!s.contains(edges[i][1])){
+                ans[0]=edges[i][0];
+                ans[1]=edges[i][1];
+                return ans;
+            }
+        }
+        return null;
+    }
+
+    @Test
+    public void testFindRedundantDirectedConnection(){
+        int[][] array= {{5,2},{5,1},{3,1},{3,4},{3,5}};
+        int[] ans=findRedundantDirectedConnection(array);
+        System.out.println(ans[0]+", "+ans[1]);
+    }
+
 }

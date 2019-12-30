@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.IntConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -979,6 +980,188 @@ public class LeetCodeEx {
         System.out.println(checkInclusion("adc","dcda"));
     }
 
+    //加了缓存似乎更慢了...
+//    Map<String,String> d=new HashMap<>();
+    private boolean matchStr(String s1,String s2){
+//        if(d.containsKey(s1)&&d.get(s1).equals(s2)) return true;
+//        if(d.containsKey(s2)&&d.get(s2).equals(s1)) return true;
+        int cnt=0;
+        for(int i=0;i<s1.length();++i){
+            if(s2.charAt(i)!=s1.charAt(i)){
+                ++cnt;
+                if(cnt==2) break;
+            }
+        }
+        if(cnt==1){
+//            d.put(s1,s2);
+//            d.put(s2,s1);
+            return true;
+        }else return false;
+    }
+
+    private List<String> getMatchStrs(String tmpStr,List<String> wordList){
+        List<String> result=new ArrayList<>();
+        for (String s1 : wordList) {
+            if(matchStr(s1,tmpStr)) result.add(s1);
+        }
+        return result;
+    }
+
+    //127. Word Ladder
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        if(beginWord.equals(endWord)) return 1;
+        if(wordList==null||wordList.size()==0) return 0;
+        if(!wordList.contains(endWord)) return 0;
+        Queue<String> q=new ArrayDeque<>();
+        Queue<Integer> cntQ=new ArrayDeque<>();
+        q.add(beginWord);
+        cntQ.add(1);
+        while (!q.isEmpty()){
+            String tmpStr=q.poll();
+            int cnt=cntQ.poll();
+            if(tmpStr.equals(endWord)){
+                return cnt;
+            }
+            for (String s1 : getMatchStrs(tmpStr,wordList)) {
+                wordList.remove(s1);
+                q.add(s1);
+                cntQ.add(cnt+1);
+            }
+        }
+        return 0;
+    }
+
+    @Test
+    public void testLadderLength(){
+        List<String> wordList=new ArrayList<>(Arrays.asList("hot","dot","dog","lot","log","cog"));
+        System.out.println(ladderLength("hit","cog",wordList));
+    }
+
+
+    //positive==true: high low high low ....
+    //positive==false: low high low high ....
+    private int findWiggle(int[] nums,boolean positive){
+        int pos=0;
+        int ans=0;
+        for(int i=0;i<nums.length-1;++i){
+            if(nums[i+1]>nums[pos]) {
+                if(!positive){
+                    positive=true;
+                    ++ans;
+                    pos=i+1;
+                }else{
+                    ++pos;//pos后面开始的起码不劣于pos开始的
+                }
+            }else if(nums[i+1]<nums[pos]){
+                if(positive){
+                    positive=false;
+                    ++ans;
+                    pos=i+1;
+                }else{
+                    ++pos;
+                }
+
+            }
+        }
+        return ans+1;
+    }
+
+    //376. Wiggle Subsequence
+    public int wiggleMaxLength(int[] nums) {
+        if(nums==null||nums.length==0) return 0;
+        if(nums.length==1) return 1;
+        return Math.max(findWiggle(nums,true),findWiggle(nums,false));
+    }
+
+    @Test
+    public void testWiggleMaxLength(){
+        int[] array={33,53,12,64,50,41,45,21,97,35,47,92,
+                39,0,93,55,40,46,69,42,6,95,51,68,72,9,32,
+                84,34,64,6,2,26,98,3,43,30,60,3,68,82,9,97,
+                19,27,98,99,4,30,96,37,9,78,43,64,4,65,30,
+                84,90,87,64,18,50,60,1,40,32,48,50,76,100,
+                57,29,63,53,46,57,93,98,42,80,82,9,41,55,
+                69,84,82,79,30,79,18,97,67,23,52,38,74,15};
+        System.out.println(wiggleMaxLength(array));
+    }
+
+
+    //215. Kth Largest Element in an Array
+    public int findKthLargest(int[] nums, int k) {
+        PriorityQueue<Integer> q=new PriorityQueue<>(k);
+        q.add(nums[0]);
+        for(int i=1;i<nums.length;++i){
+            if(q.size()<k) q.add(nums[i]);
+            else{
+                if(q.peek()<nums[i]){
+                    q.poll();
+                    q.add(nums[i]);
+                }
+            }
+        }
+        return q.peek();
+    }
+
+    @Test
+    public void testFindKthLargest(){
+        int[] array={3,2,3,1,2,4,5,5,6};
+        System.out.println(findKthLargest(array,4));
+    }
+
+    //93. Restore IP Addresses
+    private void ipAddressesDfs(String s,int index,List<Integer> pre,List<String> ans){
+        if(pre.size()>4) return;
+        if(pre.size()==4&&index==s.length()){
+            StringBuilder sb=new StringBuilder();
+            sb.append(pre.get(0)).append(".");
+            sb.append(pre.get(1)).append(".");
+            sb.append(pre.get(2)).append(".");
+            sb.append(pre.get(3));
+            ans.add(sb.toString());
+            return;
+        }else if(index==s.length()) return;
+
+        if(pre.isEmpty()) {
+            pre.add(s.charAt(index) - '0');
+            ipAddressesDfs(s, index + 1, pre,ans);
+        }else if(pre.get(pre.size()-1)==0){
+            pre.add(s.charAt(index)-'0');
+            ipAddressesDfs(s,index+1,pre,ans);
+        }else{
+            int prevTmp=pre.get(pre.size()-1);
+            int nextTmp=prevTmp*10+(s.charAt(index)-'0');
+            List<Integer> preBK=new ArrayList<>(pre);
+            if(nextTmp>0&&nextTmp<=255){
+                pre.remove(pre.size()-1);
+                pre.add(nextTmp);
+                ipAddressesDfs(s,index+1,pre,ans);
+
+                preBK.add((s.charAt(index)-'0'));
+                ipAddressesDfs(s,index+1,preBK,ans);
+            }else if(nextTmp>255){
+                pre.add((s.charAt(index)-'0'));
+                ipAddressesDfs(s,index+1,pre,ans);
+            }
+        }
+    }
+
+    public List<String> restoreIpAddresses(String s) {
+        List<String> ans=new ArrayList<>();
+        if(s==null||s.length()<4) return ans;
+        List<Integer> pre=new ArrayList<>();
+        ipAddressesDfs(s,0,pre,ans);
+        return ans;
+    }
+
+
+    @Test
+    public void testRestoreIpAddresses(){
+        for(String ip:restoreIpAddresses("10001")){
+            System.out.println(ip);
+        }
+    }
+
+
     @Test
     public static void test_1(){
         int[] array={2,4,6,8,10,10,12,14,16};
@@ -992,7 +1175,7 @@ public class LeetCodeEx {
         System.out.println(l);
         BigDecimal decimal=new BigDecimal("123.456");
         System.out.println(decimal.toString());
-
+        
     }
 
 }
