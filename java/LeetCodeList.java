@@ -1,5 +1,9 @@
 package com.xycode.leetcode;
 
+import org.testng.annotations.Test;
+
+import java.util.*;
+
 /**
  * ClassName: LeetCodeList
  *
@@ -69,4 +73,252 @@ public class LeetCodeList {
         flat(head);
         return head;
     }
+
+
+
+    class ListNode {
+        int val;
+        ListNode next;
+        ListNode(int x) { val = x; }
+    }
+
+    class TreeNode {
+        int val;
+        TreeNode left;
+        TreeNode right;
+        TreeNode(int x) { val = x; }
+    }
+
+    //根据一个有序数组建立一个平衡BST
+    TreeNode buildBST(List<Integer> inorder){
+        if(inorder.isEmpty()) return null;
+        int rootIndex=inorder.size()/2;//每次取中位数,将其作为根节点,其左边就是左子树序列,右边就是右子树序列
+        TreeNode root=new TreeNode(inorder.get(rootIndex));
+        if(inorder.size()==1){
+            return root;
+        }
+
+        root.left=buildBST(inorder.subList(0,rootIndex));
+        root.right=buildBST(inorder.subList(rootIndex+1,inorder.size()));
+        return root;
+    }
+
+    //109. Convert Sorted List to Binary Search Tree
+    public TreeNode sortedListToBST(ListNode head){
+        if(head==null) return null;
+        List<Integer> inorder=new ArrayList<>();
+        ListNode tmpNode=head;
+        while(tmpNode!=null){
+            inorder.add(tmpNode.val);
+            tmpNode=tmpNode.next;
+        }
+        return buildBST(inorder);
+    }
+
+
+    //146. LRU Cache
+    class LRUCache {
+        LRULinkedList list;
+        public LRUCache(int capacity) {
+            list=new LRULinkedList(capacity);
+        }
+
+        public int get(int key) {
+            return list.get(key);
+        }
+
+        public void put(int key, int value) {
+            list.put(key,value);
+        }
+
+        private class LRULinkedList{
+            private class ListNode{
+                int key,val;
+                ListNode prev;
+                ListNode next;
+                private ListNode(int key,int val) {
+                    this.key=key;
+                    this.val = val;
+                }
+            }
+            Map<Integer,ListNode> data;
+            ListNode head,tail;
+            int size,capacity;
+            private LRULinkedList(int capacity) {
+                this.capacity = capacity;
+                this.data=new HashMap<>();
+            }
+
+            private int get(int key){
+                if(!data.containsKey(key)) return -1;
+                else{
+                    ListNode tmp=data.get(key);
+                    if(size==1||tmp==tail) return tmp.val;
+                    if(tmp==head){
+                        //更新head
+                        head=tmp.next;
+                        head.prev=null;
+                    }else{
+                        //获取tmp的前向节点,并解除tmp的连接关系
+                        ListNode prevTmp=tmp.prev;
+                        prevTmp.next=tmp.next;
+                        tmp.next.prev=prevTmp;
+                    }
+                    //更新tail
+                    tail.next=tmp;
+                    tmp.prev=tail;
+                    tmp.next=null;
+                    tail=tmp;
+                    return tail.val;
+                }
+            }
+
+            private void put(int key,int val){
+                if(data.containsKey(key)){//重复put,将更新的key移到链表末尾,size不用变
+                    get(key);
+                    tail.val=val;
+                }else{
+                    //头部是旧数据,尾部是新数据
+                    if(size==capacity){
+                        data.remove(head.key);
+                        head=head.next;
+                        if(head!=null) head.prev=null;
+                        else tail=null;//head==null说明capacity==1,此时head==null,没节点了,将tail也置为null
+                        --size;
+                    }
+                    ListNode tmp=new ListNode(key,val);
+                    if(size==0){
+                        head=tmp;
+                    }else{
+                        tail.next=tmp;
+                        tmp.prev=tail;
+                    }
+                    tail=tmp;
+                    data.put(key,tmp);
+                    ++size;
+                }
+            }
+
+        }
+    }
+
+    @Test
+    public void testLRUCache(){
+        LRUCache cache = new LRUCache(2);
+        System.out.println(cache.get(2));
+        cache.put(2, 6);
+        System.out.println(cache.get(1));
+        cache.put(1, 5);
+        cache.put(1, 2);
+        System.out.println(cache.get(1));
+        System.out.println(cache.get(2));
+    }
+
+
+    //460. LFU Cache
+    class LFUCache {
+        private class LFUNode{
+            int key;
+            int val;
+            int count=1;
+            long version;
+            private LFUNode(int key,int val) {
+                this.key=key;
+                this.val = val;
+            }
+        }
+        Map<Integer,LFUNode> data=new HashMap<>();
+        PriorityQueue<LFUNode> q;
+        int capacity;
+        long opVersion=0;//global operation version
+        public LFUCache(int capacity) {
+            if(capacity<=0) return;
+            this.capacity=capacity;
+            q=new PriorityQueue<>((x,y)->
+                x.count==y.count?Long.compare(x.version,y.version):x.count-y.count
+            );
+        }
+
+        public int get(int key) {
+            if(capacity<=0) return -1;
+            else{
+                LFUNode tmp=data.get(key);
+                if(tmp==null) return -1;
+                update(tmp,false);
+                return tmp.val;
+            }
+        }
+
+        public void put(int key, int value) {
+            if(capacity==0) return;
+            if(data.containsKey(key)){
+                LFUNode tmp=data.get(key);
+                tmp.val=value;
+                update(tmp,false);
+            }else{
+                if(data.size()==capacity){
+                    LFUNode tmp=q.poll();
+                    data.remove(tmp.key);
+                }
+                LFUNode node=new LFUNode(key,value);
+                data.put(key,node);
+                update(node,true);
+            }
+        }
+
+        //方法私有化有助于提高性能, JIT更方便优化
+        private void update(LFUNode node,boolean put){
+            ++opVersion;
+            ++node.count;
+            node.version=opVersion;
+            if(!put) q.remove(node);//get or update operation
+            q.add(node);
+        }
+
+    }
+
+    @Test
+    public void testLFUCache(){
+        LFUCache cache = new LFUCache(3);
+        cache.put(2, 2);
+        cache.put(1, 1);
+        System.out.println(cache.get(2));
+        System.out.println(cache.get(1));
+        System.out.println(cache.get(2));
+        cache.put(3, 3);
+        cache.put(4, 4);
+        System.out.println(cache.get(3));
+        System.out.println(cache.get(2));
+        System.out.println(cache.get(1));
+        System.out.println(cache.get(4));
+    }
+
+    //61. Rotate List
+    public ListNode rotateRight(ListNode head, int k) {
+        if(head==null) return null;
+        int len=0;
+        ListNode tmpNode=head;
+        ListNode tail=head;
+        while(tmpNode!=null){
+            ++len;
+            tail=tmpNode;
+            tmpNode=tmpNode.next;
+        }
+        if(len==1) return head;
+
+        //从尾部转到首部不好在O(1)空间条件下实现,那么就反过来利用链表的next特性,反过来转
+        //当k>len时,就相当于转k%len次(k<len时有k==k%len),因此就需要反过来转len-k%len次
+        int cnt=len-k%len;
+        for(int i=0;i<cnt;++i){
+            tmpNode=head;
+            head=head.next;
+            tmpNode.next=null;
+
+            tail.next=tmpNode;
+            tail=tail.next;
+        }
+        return head;
+    }
+
+
 }

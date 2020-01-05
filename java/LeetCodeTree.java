@@ -665,6 +665,87 @@ public class LeetCodeTree {
         return null;
     }
 
+
+
+    //114. Flatten Binary Tree to Linked List
+    void flatDfs(TreeNode root,List<Integer> ans) {
+        if(root==null) return;
+        ans.add(root.val);
+        flatDfs(root.left,ans);
+        flatDfs(root.right,ans);
+    }
+
+
+    //左子树的最右节点与rootNode连接,并且还与右子树的根节点(所组成的链表)相连接
+    TreeNode flat(TreeNode root) {
+        if(root==null) return null;
+        TreeNode tmpLeft=flat(root.left),tmpRight=flat(root.right);
+        if(tmpLeft!=null){
+            root.right=tmpLeft;//root的right(next)指针指向左子树的根节点所组成的链表
+
+            TreeNode tmpNode=tmpLeft;
+            while (tmpNode.right!=null) tmpNode=tmpNode.right;//找到左子树的最右节点
+            tmpNode.right=tmpRight;
+        }else{//root没有左子树
+            root.right=tmpRight;
+        }
+        root.left=null;//这里是单向链表,right充当next指针,所以left置为null
+        return root;
+    }
+
+    public void flatten(TreeNode root) {
+        if(root==null) return;
+        //tip: 该方法space complexity: O(N), time complexity: O(N)
+//        List<Integer> list=new ArrayList<>();
+//        flatDfs(root,list);
+//        TreeNode tmpNode=root;
+//        tmpNode.left=null;
+//        for (int i=1;i<list.size();++i) {
+//            TreeNode next=new TreeNode(list.get(i));
+//            tmpNode.right=next;
+//            tmpNode=next;
+//        }
+
+        //tip: 更好的方法,space complexity: O(1), time complexity: O(N)
+        flat(root);
+    }
+
+
+    public void dfs(int node, int parent,List<Set<Integer>> neighbors,int[] ans,int[] count) {
+        for (int child: neighbors.get(node))
+            if (child != parent) {
+                dfs(child, node,neighbors,ans,count);
+                count[node] += count[child];
+                ans[node] += ans[child] + count[child];
+            }
+    }
+
+    public void dfs2(int node, int parent,List<Set<Integer>> neighbors,int[] ans,int[] count,int N) {
+        for (int child: neighbors.get(node))
+            if (child != parent) {
+                ans[child] = ans[node] - count[child] + N - count[child];
+                dfs2(child, node,neighbors,ans,count,N);
+            }
+    }
+
+    //834. Sum of Distances in Tree
+    public int[] sumOfDistancesInTree(int N, int[][] edges) {
+        int[] ans=new int[N];
+        if(edges==null||edges.length==0) return ans;
+//        Map<Integer,List<Integer>> neighbors=new HashMap<>();//适合N较大的情况,更省空间
+        List<Set<Integer>> neighbors=new ArrayList<>();//适合N较小的情况,访问速度略快
+        int[] count=new int[N];
+        Arrays.fill(count,1);
+        for(int i=0;i<N;++i) neighbors.add(new HashSet<>());
+        for(int[] edge:edges){
+            neighbors.get(edge[0]).add(edge[1]);
+            neighbors.get(edge[1]).add(edge[0]);
+        }
+        dfs(0, -1,neighbors,ans,count);
+        dfs2(0, -1,neighbors,ans,count,N);
+        return ans;
+    }
+
     @Test
     public void testFindRedundantDirectedConnection(){
         int[][] array= {{5,2},{5,1},{3,1},{3,4},{3,5}};

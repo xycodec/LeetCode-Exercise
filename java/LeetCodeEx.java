@@ -1,220 +1,20 @@
 package com.xycode.leetcode;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Streams;
-import kotlin.collections.ArraysKt;
 import org.testng.annotations.Test;
-import sun.net.www.http.HttpClient;
 
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.IntConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ClassName: leetcode1116
+ * ClassName: LeetCodeEx
  *
  * @Author: xycode
- * @Date: 2019/12/3
- * @Description: this is description of the leetcode1116 class
+ * @Date: 2020/1/4
+ * @Description: this is description of the LeetCodeEx class
  **/
 public class LeetCodeEx {
-    //leetcode, Concurrency部分
-    class ZeroEvenOdd {
-        private int n;
-        private Queue<Integer> queue;
-        private Object o=new Object();
-        public ZeroEvenOdd(int n) {
-            this.n = n;
-            queue=new LinkedList<>();
-            for(int i=1;i<=2*n;++i){
-                if(i%2==1){
-                    queue.add(0);
-                }else{
-                    queue.add(i/2);
-                }
-            }
-//            while(!queue.isEmpty()){
-//                System.out.print(queue.poll());
-//            }
-        }
-
-        // printNumber.accept(x) outputs "x", where x is an integer.
-        public synchronized void zero(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()==0){
-                        printNumber.accept(queue.poll());
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);
-            }
-        }
-
-        public void even(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()!=0&&queue.peek()%2==0){
-                        printNumber.accept(queue.poll());
-
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);
-            }
-        }
-
-        public void odd(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%2==1){
-                        printNumber.accept(queue.poll());
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);
-            }
-        }
-    }
-
-    class H2O {
-        private Semaphore h=new Semaphore(2);
-        private Semaphore o=new Semaphore(1);
-        private AtomicInteger count=new AtomicInteger(0);
-        public H2O() {
-
-        }
-
-        public void hydrogen(Runnable releaseHydrogen) throws InterruptedException {
-            h.acquire();
-            count.incrementAndGet();
-            // releaseHydrogen.run() outputs "H". Do not change or remove this line.
-            releaseHydrogen.run();
-            if(count.get()==2){
-                o.release();
-                count.addAndGet(-2);
-            }
-
-        }
-
-        public void oxygen(Runnable releaseOxygen) throws InterruptedException {
-            o.acquire();
-            // releaseOxygen.run() outputs "O". Do not change or remove this line.
-            releaseOxygen.run();
-            h.release(2);
-        }
-    }
-
-    class FizzBuzz {
-        private int n;
-        private Queue<Integer> queue;
-        private Object o=new Object();
-        public FizzBuzz(int n) {
-            this.n = n;
-            this.queue=new LinkedList<>();
-            for(int i=1;i<=n;++i){
-                this.queue.add(i);
-            }
-        }
-
-        // printFizz.run() outputs "fizz".
-        public void fizz(Runnable printFizz) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%3==0&&queue.peek()%5!=0){
-                        printFizz.run();
-                        queue.poll();
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);//Questioner's bug
-            }
-        }
-
-        // printBuzz.run() outputs "buzz".
-        public void buzz(Runnable printBuzz) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%5==0&&queue.peek()%3!=0){
-                        printBuzz.run();
-                        queue.poll();
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);//Questioner's bug
-            }
-        }
-
-        // printFizzBuzz.run() outputs "fizzbuzz".
-        public void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%5==0&&queue.peek()%3!=0){
-                        printFizzBuzz.run();
-                        queue.poll();
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);//Questioner's bug
-            }
-        }
-
-        // printNumber.accept(x) outputs "x", where x is an integer.
-        public void number(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%5!=0&&queue.peek()%3!=0){
-                        printNumber.accept(queue.poll());
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(5);//Questioner's bug
-            }
-        }
-    }
-
-    class DiningPhilosophers {
-        private Queue<Integer> queue;
-        private Object o;
-        public DiningPhilosophers() {
-            queue=new ArrayDeque<>(300);
-            o=new Object();
-            List<Integer> tmp=new ArrayList<>(Arrays.asList(0,1,2,3,4));
-            for(int i=0;i<60;++i){
-                Collections.shuffle(tmp);
-                queue.addAll(tmp);
-            }
-        }
-
-        // call the run() method of any runnable to execute its code
-        public void wantsToEat(int philosopher,
-                               Runnable pickLeftFork,
-                               Runnable pickRightFork,
-                               Runnable eat,
-                               Runnable putLeftFork,
-                               Runnable putRightFork) throws InterruptedException {
-            while (true){
-                synchronized (o){
-                    if(philosopher==queue.peek()){
-                        pickLeftFork.run();
-                        pickRightFork.run();
-                        eat.run();
-                        putLeftFork.run();
-                        putRightFork.run();
-                        queue.poll();
-                        break;
-                    }
-                }
-                TimeUnit.MICROSECONDS.sleep(10);//Questioner's bug
-            }
-        }
-    }
-
-
-
-
     //41. First Missing Positive
     public int firstMissingPositive(int[] nums) {
         if(nums.length==0) return 1;
@@ -1162,6 +962,33 @@ public class LeetCodeEx {
     }
 
 
+    public int nthUglyNumber(int n) {
+        if(n<=0) return -1;
+        if(n==1) return 1;
+
+        int[] nums=new int[n];
+        nums[0]=1;
+        int p2=0,p3=0,p5=0;
+        int pos=1;
+        while(pos<n){
+            int min=Collections.min(Arrays.asList(2*nums[p2],3*nums[p3],5*nums[p5]));
+            nums[pos]=min;
+            while (2*nums[p2]<=nums[pos]) ++p2;
+            while (3*nums[p3]<=nums[pos]) ++p3;
+            while (5*nums[p5]<=nums[pos]) ++p5;
+            ++pos;
+        }
+
+        return nums[n-1];
+    }
+
+    @Test
+    public void testNthUglyNumber(){
+        System.out.println(nthUglyNumber(10));
+    }
+
+
+
     @Test
     public static void test_1(){
         int[] array={2,4,6,8,10,10,12,14,16};
@@ -1175,7 +1002,7 @@ public class LeetCodeEx {
         System.out.println(l);
         BigDecimal decimal=new BigDecimal("123.456");
         System.out.println(decimal.toString());
-        
+
     }
 
 }
