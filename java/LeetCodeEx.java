@@ -2,9 +2,12 @@ package com.xycode.leetcode;
 
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -413,59 +416,58 @@ public class LeetCodeEx {
         }
     }
 
-    // Definition for a Node.
-    class Node {
-        public int val;
-        public List<Node> neighbors;
+    //93. Restore IP Addresses
+    private void ipAddressesDfs(String s, int index, List<Integer> pre, List<String> ans){
+        if(pre.size()>4) return;
+        if(pre.size()==4&&index==s.length()){
+            StringBuilder sb=new StringBuilder();
+            sb.append(pre.get(0)).append(".");
+            sb.append(pre.get(1)).append(".");
+            sb.append(pre.get(2)).append(".");
+            sb.append(pre.get(3));
+            ans.add(sb.toString());
+            return;
+        }else if(index==s.length()) return;
 
-        public Node() {}
+        if(pre.isEmpty()) {
+            pre.add(s.charAt(index) - '0');
+            ipAddressesDfs(s, index + 1, pre,ans);
+        }else if(pre.get(pre.size()-1)==0){
+            pre.add(s.charAt(index)-'0');
+            ipAddressesDfs(s,index+1,pre,ans);
+        }else{
+            int prevTmp=pre.get(pre.size()-1);
+            int nextTmp=prevTmp*10+(s.charAt(index)-'0');
+            List<Integer> preBK=new ArrayList<>(pre);
+            if(nextTmp>0&&nextTmp<=255){
+                pre.remove(pre.size()-1);
+                pre.add(nextTmp);
+                ipAddressesDfs(s,index+1,pre,ans);
 
-        public Node(int _val,List<Node> _neighbors) {
-            val = _val;
-            neighbors = _neighbors;
+                preBK.add((s.charAt(index)-'0'));
+                ipAddressesDfs(s,index+1,preBK,ans);
+            }else if(nextTmp>255){
+                pre.add((s.charAt(index)-'0'));
+                ipAddressesDfs(s,index+1,pre,ans);
+            }
         }
     }
 
-    Set<Integer> s=new HashSet<>();
-    void dfs(Node node,Map<Integer,List<Integer> > mp){
-        for(Node tmp:node.neighbors){
-            if(!mp.containsKey(node.val)){
-                mp.put(node.val,new ArrayList<>());
-            }
-            mp.get(node.val).add(tmp.val);
-//            System.out.println(node.val+" : "+tmp.val);
-            if(!s.contains(tmp.val)){
-                s.add(tmp.val);
-                dfs(tmp,mp);
-            }
-        }
+    public List<String> restoreIpAddresses(String s) {
+        List<String> ans=new ArrayList<>();
+        if(s==null||s.length()<4) return ans;
+        List<Integer> pre=new ArrayList<>();
+        ipAddressesDfs(s,0,pre,ans);
+        return ans;
     }
 
-    //133. Clone Graph
-    public Node cloneGraph(Node node) {
-        s.add(node.val);
-        Map<Integer,List<Integer>> mp=new HashMap<>();
-        dfs(node,mp);
-        Map<Integer,Node> mp2=new HashMap<>();
-        Node first=new Node(node.val,new ArrayList<>());
-        mp2.put(first.val,first);
-        for(int val:mp.keySet()){
-            if(!mp2.containsKey(val)){
-                Node tmp=new Node(val,new ArrayList<>());
-                mp2.put(val,tmp);
-            }
-            for(int neighborVal:mp.get(val)){
-                if(!mp2.containsKey(neighborVal)){
-                    Node tmp=new Node(neighborVal,new ArrayList<>());
-                    mp2.put(neighborVal,tmp);
-                }
-                mp2.get(val).neighbors.add(mp2.get(neighborVal));
-            }
 
+    @Test
+    public void testRestoreIpAddresses(){
+        for(String ip:restoreIpAddresses("10001")){
+            System.out.println(ip);
         }
-        return first;
     }
-
 
     //715. Range Module
     class RangeModule {
@@ -908,58 +910,7 @@ public class LeetCodeEx {
         System.out.println(findKthLargest(array,4));
     }
 
-    //93. Restore IP Addresses
-    private void ipAddressesDfs(String s,int index,List<Integer> pre,List<String> ans){
-        if(pre.size()>4) return;
-        if(pre.size()==4&&index==s.length()){
-            StringBuilder sb=new StringBuilder();
-            sb.append(pre.get(0)).append(".");
-            sb.append(pre.get(1)).append(".");
-            sb.append(pre.get(2)).append(".");
-            sb.append(pre.get(3));
-            ans.add(sb.toString());
-            return;
-        }else if(index==s.length()) return;
 
-        if(pre.isEmpty()) {
-            pre.add(s.charAt(index) - '0');
-            ipAddressesDfs(s, index + 1, pre,ans);
-        }else if(pre.get(pre.size()-1)==0){
-            pre.add(s.charAt(index)-'0');
-            ipAddressesDfs(s,index+1,pre,ans);
-        }else{
-            int prevTmp=pre.get(pre.size()-1);
-            int nextTmp=prevTmp*10+(s.charAt(index)-'0');
-            List<Integer> preBK=new ArrayList<>(pre);
-            if(nextTmp>0&&nextTmp<=255){
-                pre.remove(pre.size()-1);
-                pre.add(nextTmp);
-                ipAddressesDfs(s,index+1,pre,ans);
-
-                preBK.add((s.charAt(index)-'0'));
-                ipAddressesDfs(s,index+1,preBK,ans);
-            }else if(nextTmp>255){
-                pre.add((s.charAt(index)-'0'));
-                ipAddressesDfs(s,index+1,pre,ans);
-            }
-        }
-    }
-
-    public List<String> restoreIpAddresses(String s) {
-        List<String> ans=new ArrayList<>();
-        if(s==null||s.length()<4) return ans;
-        List<Integer> pre=new ArrayList<>();
-        ipAddressesDfs(s,0,pre,ans);
-        return ans;
-    }
-
-
-    @Test
-    public void testRestoreIpAddresses(){
-        for(String ip:restoreIpAddresses("10001")){
-            System.out.println(ip);
-        }
-    }
 
 
     public int nthUglyNumber(int n) {
@@ -988,6 +939,209 @@ public class LeetCodeEx {
     }
 
 
+    //1093. Statistics from a Large Sample
+    public double[] sampleStats(int[] count) {
+        int min=-1,max=-1,mode=-1;
+        double mean=-1,median=-1;
+        long cnt=0,sum=0;
+        long modeCnt=0;
+        for(int i=0;i<256;++i){
+            if(count[i]!=0){
+                //min
+                if(min==-1) min=i;
+                //mean
+                cnt+=count[i];
+                sum+=i*count[i];
+                //mode
+                if(modeCnt<count[i]){
+                    modeCnt=count[i];
+                    mode=i;
+                }
+            }
+        }
+        mean=sum/(double)cnt;
+        int step=1000;
+        if(cnt%2==1){
+            long half=cnt/2;
+            for(int i=255;i>=0;--i){
+                if(count[i]!=0){
+                    //max
+                    if(max==-1) max=i;
+                    //median
+                    if(half>count[i]) half-=count[i];
+                    else{
+                        int tmp=count[i];
+                        while (half>step&&tmp>step){
+                            tmp-=step;
+                            half-=step;
+                        }
+                        for(int j=1;j<=tmp;++j){
+                            if(half==0) median=i;
+                            --half;
+                        }
+                        if(half<0) break;
+                    }
+                }
+            }
+        }else{
+            long halfR=cnt/2-1,halfL=cnt/2;
+            int tmpMedian=0;
+            for(int i=255;i>=0;--i){
+                if(count[i]!=0){
+                    //max
+                    if(max==-1) max=i;
+                    //median
+                    if(halfR>count[i]) halfR-=count[i];
+                    else{
+                        int tmp=count[i];
+                        while (halfR>step&&tmp>step){
+                            tmp-=step;
+                            halfR-=step;
+                        }
+                        for(int j=1;j<=tmp;++j){
+                            if(halfR==0) tmpMedian=i;
+                            --halfR;
+                        }
+                    }
+
+                    if(halfL>count[i]) halfL-=count[i];
+                    else{
+                        int tmp=count[i];
+                        while (halfL>step&&tmp>step){
+                            tmp-=step;
+                            halfL-=step;
+                        }
+                        for(int j=1;j<=tmp;++j){
+                            if(halfL==0) median=(i+tmpMedian)/2.0;
+                            --halfL;
+                        }
+                        if(halfL<0) break;
+                    }
+                }
+            }
+        }
+        double[] ans={min,max,mean,median,mode};
+        return ans;
+    }
+
+
+
+    //56. Merge Intervals
+    public int[][] merge(int[][] intervals) {
+        if(intervals==null||intervals.length<=1) return intervals;
+        Arrays.sort(intervals, Comparator.comparingInt(x -> x[0]));
+        LinkedList<int[]> list=new LinkedList<>();
+        for(int i=0;i<intervals.length;++i){
+            int[] tmp={intervals[i][0],intervals[i][1]};
+            list.add(tmp);
+        }
+        while(true){
+            int len=list.size();
+            boolean flag=false;
+            for(int i=0;i<len-1;++i){
+                if(list.get(i)[1]>=list.get(i+1)[0]){
+                    if (list.get(i)[1] < list.get(i+1)[1]) {
+                        list.get(i)[1] = list.get(i+1)[1];
+                    }
+                    list.remove(i+1);
+                    flag=true;
+                    break;
+                }
+            }
+            if(!flag) break;
+        }
+        int[][] ans=new int[list.size()][2];
+        for(int i=0;i<list.size();++i){
+            ans[i]=list.get(i);
+        }
+        return ans;
+    }
+
+    public int maxSubArray(int[] nums) {
+        if(nums==null||nums.length==0) return 0;
+        if(nums.length==1) return nums[0];
+        int tmpSum=0;
+        int maxSum=Integer.MIN_VALUE;
+        for (int num : nums) {
+            if (tmpSum <= 0) tmpSum = num;
+            else tmpSum += num;
+            if (tmpSum > maxSum) maxSum = tmpSum;
+        }
+        return maxSum;
+    }
+
+    @Test
+    public void testMaxSubArray(){
+        int[] array={-2,1,-3,4,-1,2,1,-5,4};
+        System.out.println(maxSubArray(array));
+    }
+
+    class RandomFlipMatrix {
+//        List<Integer> rows=new ArrayList<>();
+//        List<Integer> cols=new ArrayList<>();
+//        int n_rows,n_cols;
+//        public RandomFlipMatrix(int n_rows, int n_cols) {
+//            this.n_rows=n_rows;
+//            this.n_cols=n_cols;
+//            for(int i=0;i<n_rows;++i){
+//                rows.add(i);
+//            }
+//            for(int j=0;j<n_cols;++j){
+//                cols.add(j);
+//            }
+//            Collections.shuffle(rows);
+//            Collections.shuffle(cols);
+//        }
+//        int rowPos=0,colPos=0;
+//        public int[] flip() {
+//            if(colPos==n_cols){
+//                colPos=0;
+//                ++rowPos;
+//            }
+//            int[] tmp={rows.get(rowPos),cols.get(colPos)};
+//            ++colPos;
+//            return tmp;
+//        }
+//
+//        public void reset() {
+//            rowPos=0;
+//            colPos=0;
+//            Collections.shuffle(rows);
+//            Collections.shuffle(cols);
+//        }
+
+
+        Map<Integer, Integer> map=new HashMap<>();
+        int rows, cols, total;
+        Random rand=ThreadLocalRandom.current();
+        public RandomFlipMatrix(int n_rows, int n_cols) {
+            rows = n_rows;
+            cols = n_cols;
+            total = rows * cols;
+        }
+
+        /**
+         * Fisher–Yates shuffle洗牌算法:
+         * 1. 计算矩阵的元素个数记作n，那么[0, n-1]相当于矩阵下标对应的一维索引。
+         * 2. 维护一个Map,每次采样时，key表示采样到的索引，value表示这一次采样时的末尾索引。每次采样时末尾索引都不一样，第一次采样时末尾索引为n-1，每次采样前，我们都把末尾索引减1。
+         * 3. 这样如果采样到之前使用过的索引，我们就可以从dict中根据“已经采样过的索引”（key）得到value（“采样这个使用过的索引时记录下来的末尾索引”）来作为当前的采样索引
+         * 4. 如果采样到还未使用过的索引，则直接使用这个索引来作为当前的采样索引。
+         * @return
+         */
+        public int[] flip() {
+            int r = rand.nextInt(total--);
+            int x = map.getOrDefault(r, r);
+            map.put(r, map.getOrDefault(total, total));
+            return new int[]{x / cols, x % cols};
+        }
+
+        public void reset() {
+            map.clear();
+            total = rows * cols;
+        }
+
+    }
+
 
     @Test
     public static void test_1(){
@@ -1000,9 +1154,12 @@ public class LeetCodeEx {
         System.out.println(l);
         Collections.shuffle(l);
         System.out.println(l);
-        BigDecimal decimal=new BigDecimal("123.456");
-        System.out.println(decimal.toString());
 
+        System.out.println(Arrays.stream(array).summaryStatistics());
+
+
+        ThreadLocalRandom randomNext=ThreadLocalRandom.current();
+        randomNext.nextInt(11);
     }
 
 }

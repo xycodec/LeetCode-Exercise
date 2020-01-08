@@ -2,8 +2,8 @@ package com.xycode.leetcode;
 
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 
 /**
@@ -98,7 +98,59 @@ public class LeetCodeGraph {
         Predicate<Integer> p= i -> i>0;
     }
 
+    // Definition for a Node.
+    class Node {
+        public int val;
+        public List<Node> neighbors;
 
+        public Node() {}
+
+        public Node(int _val,List<Node> _neighbors) {
+            val = _val;
+            neighbors = _neighbors;
+        }
+    }
+
+    Set<Integer> s=new HashSet<>();
+    void dfs(Node node, Map<Integer,List<Integer> > mp){
+        for(Node tmp:node.neighbors){
+            if(!mp.containsKey(node.val)){
+                mp.put(node.val,new ArrayList<>());
+            }
+            mp.get(node.val).add(tmp.val);
+//            System.out.println(node.val+" : "+tmp.val);
+            if(!s.contains(tmp.val)){
+                s.add(tmp.val);
+                dfs(tmp,mp);
+            }
+        }
+    }
+
+
+    //133. Clone Graph
+    public Node cloneGraph(Node node) {
+        s.add(node.val);
+        Map<Integer,List<Integer>> mp=new HashMap<>();
+        dfs(node,mp);
+        Map<Integer,Node> mp2=new HashMap<>();
+        Node first=new Node(node.val,new ArrayList<>());
+        mp2.put(first.val,first);
+        for(int val:mp.keySet()){
+            if(!mp2.containsKey(val)){
+                Node tmp=new Node(val,new ArrayList<>());
+                mp2.put(val,tmp);
+            }
+            for(int neighborVal:mp.get(val)){
+                if(!mp2.containsKey(neighborVal)){
+                    Node tmp=new Node(neighborVal,new ArrayList<>());
+                    mp2.put(neighborVal,tmp);
+                }
+                mp2.get(val).neighbors.add(mp2.get(neighborVal));
+            }
+
+        }
+        return first;
+    }
 
 
 }
