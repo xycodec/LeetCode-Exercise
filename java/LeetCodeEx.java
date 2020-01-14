@@ -1,6 +1,8 @@
 package com.xycode.leetcode;
 
+import com.google.common.base.Strings;
 import org.testng.annotations.Test;
+import sun.applet.AppletResourceLoader;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -1076,6 +1078,31 @@ public class LeetCodeEx {
         System.out.println(maxSubArray(array));
     }
 
+    //220. Contains Duplicate III
+    public static boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        int len=nums.length;
+        if(len<=1||k<=0||t<0) return false;
+        TreeMap<Long,Integer> mp=new TreeMap<>();
+        for(int i=0;i<len;++i){
+            Map<Long,Integer> tmpMap=mp.subMap((long)nums[i]-t,(long)nums[i]+t+1);
+            if(tmpMap.isEmpty()){
+                mp.put((long)nums[i],i);
+            }else{
+                Map<Long,Integer> tmp=new HashMap<>();
+                for(long key:tmpMap.keySet()){
+                    int tmpIndex=tmpMap.get(key);
+                    if(i-tmpIndex<=k){
+                        return true;
+                    }else{
+                        tmp.put((long)nums[i],i);
+                    }
+                }
+                mp.putAll(tmp);
+            }
+        }
+        return false;
+    }
+
     class RandomFlipMatrix {
 //        List<Integer> rows=new ArrayList<>();
 //        List<Integer> cols=new ArrayList<>();
@@ -1143,6 +1170,186 @@ public class LeetCodeEx {
     }
 
 
+    private boolean validInteger(String s,boolean signed){
+        if(s==null||s.length()==0) return false;
+        if(!signed){
+            for(int i=0;i<s.length();++i){
+                if(!Character.isDigit(s.charAt(i))) return false;
+            }
+            return true;
+        }else{//signed==true: can contain '+','-'
+            if(s.charAt(0)=='+'||s.charAt(0)=='-'){
+                return validInteger(s.substring(1),false);
+            }else return validInteger(s,false);
+        }
+
+    }
+
+    //exclude 'e'
+    private boolean validNumber(String s){
+        if(s==null||s.length()==0) return false;
+        char first=s.charAt(0);
+        if(first=='.'){
+            return validInteger(s.substring(1),false);
+        }else{
+            if(first=='+'||first=='-'){
+                if(s.length()==1) return false;
+                if(s.charAt(1)=='.') return validInteger(s.substring(2),false);
+                int cnt=0;
+                for(int i=1;i<s.length();++i){
+                    if(s.charAt(i)=='.') ++cnt;
+                }
+                if(cnt==0) return validInteger(s.substring(1),false);
+                if(cnt!=1) return false;//multiple '.', is illegal
+                int pos=s.indexOf('.');
+                if(pos==s.length()-1) return validInteger(s.substring(1,pos),false);//eg: +3.
+                return validInteger(s.substring(1,pos),false)&&validInteger(s.substring(pos+1),false);
+            }else{
+                int cnt=0;
+                for(int i=1;i<s.length();++i){
+                    if(s.charAt(i)=='.') ++cnt;
+                }
+                if(cnt==0) return validInteger(s,false);
+                if(cnt!=1) return false;//multiple '.', is illegal
+                int pos=s.indexOf('.');
+                if(pos==s.length()-1) return validInteger(s.substring(0,pos),false);//eg: 3.
+                return validInteger(s.substring(0,pos),false)&&validInteger(s.substring(pos+1),false);
+            }
+        }
+    }
+
+    //65. Valid Number
+    public boolean isNumber(String s) {
+        if(s==null) return false;
+        s=s.trim();
+        if(s.length()==0) return false;
+        int cnt=0;
+        for(int i=0;i<s.length();++i){
+            if(s.charAt(i)=='e') ++cnt;
+        }
+        if(cnt==0) return validNumber(s);
+        if(cnt!=1) return false;
+        int pos=s.indexOf('e');
+        return validNumber(s.substring(0,pos))&&validInteger(s.substring(pos+1),true);
+    }
+
+    @Test
+    public void testIsNumber(){
+        System.out.println(isNumber("3.e2"));
+    }
+
+    //498. Diagonal Traverse
+    public int[] findDiagonalOrder(int[][] matrix) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0) return new int[0];
+        int m = matrix.length, n = matrix[0].length;
+        int[] ans = new int[m * n];
+        int cnt = 0;
+        for (int i = 0; i < m + n - 1; ++i) {
+            if (i % 2 == 1) {
+                for (int j = Math.min(i, n - 1); j >= Math.max(i - m + 1, 0); --j)
+                    ans[cnt++] = matrix[i - j][j];
+            } else {
+                for (int j = Math.max(i - m + 1, 0); j <= Math.min(i, n - 1); ++j)
+                    ans[cnt++] = matrix[i - j][j];
+            }
+        }
+        return ans;
+    }
+
+    @Test
+    public void testFindDiagonalOrder(){
+        int[][] array={{1,2,3},{4,5,6},{7,8,9}};
+        for(int i:findDiagonalOrder(array))
+            System.out.print(i+" ");
+        System.out.println();
+    }
+
+
+    int decodeCnt=0;
+    private void numDecodingsDfs(String s, int index){
+        if(index==s.length()){
+            ++decodeCnt;
+            return;
+        }
+        int nextTmp1=s.charAt(index)-'0';
+        if(nextTmp1!=0) numDecodingsDfs(s,index+1);
+        if(index+1!=s.length()&&nextTmp1!=0){
+            int nextTmp2=nextTmp1*10+s.charAt(index+1)-'0';
+            if(nextTmp2>=1&&nextTmp2<=26) numDecodingsDfs(s,index+2);
+        }
+    }
+
+    //91. Decode Ways
+    public int numDecodings(String s) {
+        //dfs,指数时间复杂度
+//        numDecodingsDfs(s,0);
+//        return decodeCnt;
+
+        //dp: O(N^2)
+        int len=s.length();
+        int[] dp=new int[len];
+        int cnt=0;
+        for(int i=len-1;i>=0;--i){
+            cnt=0;
+            int tmp1=s.charAt(i)-'0';
+            if(tmp1==0) continue;
+            if(i<len-1) cnt=dp[i+1];
+            else cnt=1;
+            if(i<len-1){
+                int tmp2=s.charAt(i+1)-'0';
+                int decodeTmp=tmp1*10+tmp2;
+                if(decodeTmp<=26){
+                    if(i<len-2) cnt+=dp[i+2];
+                    else ++cnt;
+                }
+            }
+            dp[i]=cnt;
+        }
+        return cnt;
+    }
+
+    @Test
+    public void testNumDecodings(){
+        System.out.println(numDecodings("226"));
+    }
+
+
+    //84. Largest Rectangle in Histogram
+    public int largestRectangleArea(int[] heights) {
+        if(heights==null||heights.length==0) return 0;
+        if(heights.length==1) return heights[0];
+        int[] heightsTmp=new int[heights.length+1];
+        for(int i=0;i<heights.length;++i){
+            heightsTmp[i]=heights[i];
+        }
+        heightsTmp[heights.length]=0;
+        int len = heights.length+1;
+        int maxArea = 0;
+        int h, w;
+        Stack<Integer> st=new Stack<>();
+        for (int i = 0; i < len; i++) {
+            if (st.empty() || heightsTmp[st.peek()] < heightsTmp[i])
+                st.push(i);
+            else {
+                while (!st.empty() && heightsTmp[i] <= heightsTmp[st.peek()]) {
+                    h = heightsTmp[st.pop()];
+                    w = st.empty() ? i : i - (st.peek() + 1);
+                    maxArea = Math.max(maxArea, h * w);
+                }
+                st.push(i);
+            }
+        }
+
+        return maxArea;
+    }
+
+    @Test
+    public void testLargestRectangleArea(){
+        int[] array={2,1,5,6,2,3};
+        System.out.println(largestRectangleArea(array));
+    }
+
+
     @Test
     public static void test_1(){
         int[] array={2,4,6,8,10,10,12,14,16};
@@ -1158,8 +1365,8 @@ public class LeetCodeEx {
         System.out.println(Arrays.stream(array).summaryStatistics());
 
 
-        ThreadLocalRandom randomNext=ThreadLocalRandom.current();
-        randomNext.nextInt(11);
+        String[] tmp="3e".split("e");
+        System.out.println(tmp.length);
     }
 
 }
