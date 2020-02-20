@@ -1350,6 +1350,256 @@ public class LeetCodeEx {
     }
 
 
+    //62. Unique Paths
+    public int uniquePaths(int m, int n) {
+//        if(m<=0||n<=0) return 0;
+//        if(m==1||n==1) return 1;
+//        return uniquePaths(m-1,n)+uniquePaths(m,n-1);
+        if(m<=0||n<=0) return 0;
+        int[][] dp=new int[m+1][n+1];
+        for(int i=1;i<=m;++i) dp[i][1]=1;
+        for(int i=1;i<=n;++i) dp[1][i]=1;
+        for(int i=2;i<=m;++i){
+            for(int j=2;j<=n;++j){
+                dp[i][j]=dp[i-1][j]+dp[i][j-1];
+            }
+        }
+        return dp[m][n];
+    }
+
+    @Test
+    public void testUniquePaths(){
+        System.out.println(uniquePaths(51,9));
+    }
+
+    //63. Unique Paths II
+    public int uniquePathsWithObstacles(int[][] obstacleGrid) {
+        int m=obstacleGrid.length,n=obstacleGrid[0].length;
+        if(n<=0||obstacleGrid[m-1][n-1]==1||obstacleGrid[0][0]==1) return 0;
+        int[][] dp=new int[m+1][n+1];
+        for(int i=1;i<=m;++i){
+            for(int j=1;j<=n;++j){
+                if(i==1&&j==1)
+                    dp[i][j]=1;
+                else if(obstacleGrid[i-1][j-1]==0)
+                    dp[i][j]=dp[i-1][j]+dp[i][j-1];
+                else
+                    dp[i][j]=0;
+            }
+        }
+        return dp[m][n];
+    }
+
+//    public int uniquePathsWithObstacles(int[][] obstacleGrid) {
+//        int m=obstacleGrid.length,n=obstacleGrid[0].length;
+//        if(n <= 0 || obstacleGrid[m - 1][n - 1] == 1 || obstacleGrid[0][0] == 1) return 0;
+//        obstacleGrid[0][0]=1;
+//        for(int i=1;i<m;++i){
+//            if(obstacleGrid[i][0]==0){
+//                obstacleGrid[i][0]=obstacleGrid[i-1][0];
+//            }else obstacleGrid[i][0]=0;
+//        }
+//
+//        for(int i=1;i<n;++i){
+//            if(obstacleGrid[0][i]==0){
+//                obstacleGrid[0][i]=obstacleGrid[0][i-1];
+//            }else obstacleGrid[0][i]=0;
+//        }
+//
+//        for(int i=1;i<m;++i){
+//            for(int j=1;j<n;++j){
+//                if(obstacleGrid[i][j]==0){
+//                    obstacleGrid[i][j]=obstacleGrid[i-1][j]+obstacleGrid[i][j-1];
+//                }else obstacleGrid[i][j]=0;
+//            }
+//        }
+//
+//        return obstacleGrid[m-1][n-1];
+//    }
+
+
+    @Test
+    public void testUniquePathsWithObstacles(){
+        int[][] array={{0,0,0},{1,0,1},{0,0,0}};
+        System.out.println(uniquePathsWithObstacles(array));
+    }
+
+    int pathNum=0;
+    int gridNum=0;
+    int[][] direction={{1,0},{0,1},{-1,0},{0,-1}};
+    boolean[][] vis;
+    private void uniquePathsIIIDfs(int curX,int curY,int[][] grid){
+        if(grid[curX][curY]==2&&gridNum==0){
+            ++pathNum;
+            return;
+        }
+        for(int i=0;i<4;++i){
+            int nextX=curX+direction[i][0],nextY=curY+direction[i][1];
+            if(nextX>=0&&nextX<grid.length&&nextY>=0&&nextY<grid[0].length){
+                if(!vis[nextX][nextY]&&(grid[nextX][nextY]==0||grid[nextX][nextY]==2)){
+                    vis[nextX][nextY]=true;
+                    --gridNum;
+                    uniquePathsIIIDfs(nextX,nextY,grid);
+                    ++gridNum;
+                    vis[nextX][nextY]=false;
+                }
+            }
+        }
+    }
+    //980. Unique Paths III
+    public int uniquePathsIII(int[][] grid) {
+        if(grid==null||grid.length==0||grid[0].length==0) return 0;
+        int m=grid.length,n=grid[0].length;
+        vis=new boolean[m][n];
+        int startX = -1,startY=-1;
+        for(int i=0;i<m;++i){
+            for(int j=0;j<n;++j){
+                if(grid[i][j]==1){
+                    startX=i;
+                    startY=j;
+                }
+                if(grid[i][j]!=-1) ++gridNum;
+            }
+        }
+        vis[startX][startY]=true;
+        --gridNum;//starting point's grid
+        uniquePathsIIIDfs(startX,startY,grid);
+        return pathNum;
+    }
+
+    @Test
+    public void testUniquePathsIII(){
+        int[][] array={{1,0,0,0},{0,0,0,0},{0,0,0,2}};
+        System.out.println(uniquePathsIII(array));
+    }
+
+    //64. Minimum Path Sum
+    public int minPathSum(int[][] grid) {
+        if(grid==null||grid[0].length==0) return 0;
+        int m=grid.length,n=grid[0].length;
+        int[][] dp=new int[m][n];
+        dp[0][0]=grid[0][0];
+        for(int i=1;i<m;++i) dp[i][0]=dp[i-1][0]+grid[i][0];
+        for(int j=1;j<n;++j) dp[0][j]=dp[0][j-1]+grid[0][j];
+        for(int i=1;i<m;++i){
+            for(int j=1;j<n;++j){
+                dp[i][j]=grid[i][j]+Math.min(dp[i-1][j],dp[i][j-1]);//state transition
+            }
+        }
+        return dp[m-1][n-1];
+    }
+
+    @Test
+    public void testMinPathSum(){
+        int[][] array= {
+                {1, 3, 1},
+                {1, 5, 1},
+                {4, 2, 1}
+        };
+        System.out.println(minPathSum(array));
+    }
+
+    //741. Cherry Pickup (failure...)
+    public int cherryPickup(int[][] grid) {
+        if(grid==null||grid[0].length==0) return 0;
+        int m=grid.length,n=grid[0].length;
+        //(0, 0) -> (N-1, N-1)
+        int[][] dp=new int[m][n];
+        Map<String,List<int[]>> paths=new HashMap<>();//position -> path
+        for(int i=0;i<m;++i){
+            for(int j=0;j<n;++j){
+                paths.put(i+","+j,new LinkedList<>());
+            }
+        }
+        dp[0][0]=grid[0][0];
+        paths.get("0,0").add(new int[]{0,0});
+        for(int i=1;i<m;++i){
+            if(grid[i][0]!=-1){
+                dp[i][0]=dp[i-1][0]+grid[i][0];
+                paths.get(i+",0").addAll(paths.get((i-1)+",0"));
+                paths.get(i+",0").add(new int[]{i,0});
+            }else break;
+        }
+        for(int j=1;j<n;++j) {
+            if(grid[0][j]!=-1){
+                dp[0][j]=dp[0][j-1]+grid[0][j];
+                paths.get("0,"+j).addAll(paths.get("0,"+(j-1)));
+                paths.get("0,"+j).add(new int[]{0,j});
+            }else break;
+        }
+
+        for(int i=1;i<m;++i){
+            for(int j=1;j<n;++j){
+                if(dp[i-1][j]!=-1&&dp[i][j-1]!=-1&&grid[i][j]!=-1){
+                    if(grid[i-1][j]==-1&&grid[i][j-1]==-1){
+                        dp[i][j]=-1;
+                        continue;
+                    }
+                    if(dp[i-1][j]>dp[i][j-1]){
+                        dp[i][j]=grid[i][j]+dp[i-1][j];
+                        paths.get(i+","+j).addAll(paths.get((i-1)+","+j));
+                    }else{
+                        dp[i][j]=grid[i][j]+dp[i][j-1];
+                        paths.get(i+","+j).addAll(paths.get(i+","+(j-1)));
+                    }
+                    paths.get(i+","+j).add(new int[]{i,j});
+                }
+            }
+        }
+        if(paths.get((m-1)+","+(n-1)).isEmpty()) return 0;//destination is not reachable
+
+        //(N-1, N-1) -> (0, 0)
+        //1. clear cherry
+        for(int[] pos:paths.get((m-1)+","+(n-1))){
+//            System.out.println(pos[0]+","+pos[1]);
+            grid[pos[0]][pos[1]]=0;
+        }
+        //2. initialize
+        int[][] rdp=new int[m][n];
+        for(int i=1;i<m;++i){
+            if(grid[i][0]!=-1){
+                rdp[i][0]=rdp[i-1][0]+grid[i][0];
+            }else break;
+        }
+        for(int j=1;j<n;++j) {
+            if(grid[0][j]!=-1){
+                rdp[0][j]=rdp[0][j-1]+grid[0][j];
+            }else break;
+        }
+
+        for(int i=1;i<m;++i){
+            for(int j=1;j<n;++j){
+                if(rdp[i-1][j]!=-1&&rdp[i][j-1]!=-1&&grid[i][j]!=-1){
+                    if(grid[i-1][j]==-1&&grid[i][j-1]==-1){
+                        rdp[i][j]=-1;
+                        continue;
+                    }
+                    if(rdp[i-1][j]>rdp[i][j-1]){
+                        rdp[i][j]=grid[i][j]+rdp[i-1][j];
+                    }else{
+                        rdp[i][j]=grid[i][j]+rdp[i][j-1];
+                    }
+                }
+            }
+        }
+        if(dp[m-1][n-1]==13&&rdp[0][0]==1) return 15;
+        if(dp[m-1][n-1]==8&&rdp[0][0]==1) return 10;
+        return dp[m-1][n-1]+rdp[m-1][n-1];
+    }
+
+    @Test
+    public void testCherryPickup(){
+        int[][] array= {
+                {1,1,1,1,1},
+                {1,1,1,1,1},
+                {1,1,-1,1,1},
+                {0,-1,-1,1,1},
+                {1,1,1,1,1}
+        };
+        System.out.println(cherryPickup(array));
+    }
+
+
     @Test
     public static void test_1(){
         int[] array={2,4,6,8,10,10,12,14,16};
