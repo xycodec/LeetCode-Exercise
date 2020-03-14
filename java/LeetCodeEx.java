@@ -1,15 +1,15 @@
 package com.xycode.leetcode;
 
-import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.xycode.heap.MinHeap;
 import org.testng.annotations.Test;
-import sun.applet.AppletResourceLoader;
+import sun.misc.Unsafe;
 
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.IntStream;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.stream.Stream;
 
 /**
@@ -154,64 +154,6 @@ public class LeetCodeEx {
         System.out.println(trap(a));
     }
 
-
-    //44. Wildcard Matching
-    private Map<Integer, Boolean> dp = new HashMap<>();
-    private boolean match(String s, int i, String p, int j){
-        int key = Objects.hash(i,j);
-
-        if(dp.containsKey(key))
-            return dp.get(key);
-
-        if (i == s.length() || j == p.length()){
-            if (i == s.length() && j == p.length()){
-                return true;
-            }else if (i == s.length()){
-                while (j < p.length() && p.charAt(j) == '*')
-                    j++;
-
-                if (j == p.length())
-                    return true;
-                else
-                    return false;
-            }else{
-                return false;
-            }
-        }
-
-        boolean isMatch = true;
-
-        if (p.charAt(j) == '*'){
-            isMatch = match(s, i, p, j + 1);// match empty
-
-            if (!isMatch)
-                isMatch = match(s, i + 1, p, j + 1);//match last one
-
-            if (!isMatch)
-                isMatch = match(s, i + 1, p, j);//continue match
-        }else if (p.charAt(j) == '?' || p.charAt(j) == s.charAt(i)){
-            isMatch = match(s, i + 1, p, j + 1);
-        }else{
-            isMatch = false;
-        }
-
-        dp.put(key, isMatch);
-
-        return isMatch;
-    }
-
-    public boolean isMatch(String s, String p){
-        return match(s, 0, p, 0);
-    }
-
-    @Test
-    public void testIsMatch(){
-        System.out.println(String.format("%d%d",10,20));
-        System.out.println(10<<16);
-        System.out.println(isMatch("aaabababaaabaababbbaaaabbbbbbabbbbabbbabbaabbababab",
-                "*ab***ba**b*b*aaab*b"));
-    }
-
     //55. Jump Game
     short[] memo;
     public boolean jump(int[] nums,int pos){
@@ -239,23 +181,23 @@ public class LeetCodeEx {
         return jump(nums,0);
     }
 
-    public boolean canJumpDP(int[] nums) {
-        short[] dp=new short[nums.length];
-        for(int i=nums.length-2;i>=0;--i){
-            if(nums[i]+i>=nums.length-1){
-                dp[i]=1;
-                continue;
-            }
-            int t=nums[i]+i;
-            for(int j=i+1;j<=nums[i]+i;++j){
-                if (dp[j] == 1) {
-                    dp[i]=1;
-                    break;
-                }
-            }
-        }
-        return dp[0]==1;
-    }
+//    public boolean canJumpDP(int[] nums) {
+//        short[] dp=new short[nums.length];
+//        for(int i=nums.length-2;i>=0;--i){
+//            if(nums[i]+i>=nums.length-1){
+//                dp[i]=1;
+//                continue;
+//            }
+//            int t=nums[i]+i;
+//            for(int j=i+1;j<=nums[i]+i;++j){
+//                if (dp[j] == 1) {
+//                    dp[i]=1;
+//                    break;
+//                }
+//            }
+//        }
+//        return dp[0]==1;
+//    }
 
     //45. Jump Game II
     public int jumpMini(int[] nums) {
@@ -415,59 +357,6 @@ public class LeetCodeEx {
         int[][] ans=insert(a,b);
         for(int i=0;i<ans.length;++i){
             System.out.println(ans[i][0]+" "+ans[i][1]);
-        }
-    }
-
-    //93. Restore IP Addresses
-    private void ipAddressesDfs(String s, int index, List<Integer> pre, List<String> ans){
-        if(pre.size()>4) return;
-        if(pre.size()==4&&index==s.length()){
-            StringBuilder sb=new StringBuilder();
-            sb.append(pre.get(0)).append(".");
-            sb.append(pre.get(1)).append(".");
-            sb.append(pre.get(2)).append(".");
-            sb.append(pre.get(3));
-            ans.add(sb.toString());
-            return;
-        }else if(index==s.length()) return;
-
-        if(pre.isEmpty()) {
-            pre.add(s.charAt(index) - '0');
-            ipAddressesDfs(s, index + 1, pre,ans);
-        }else if(pre.get(pre.size()-1)==0){
-            pre.add(s.charAt(index)-'0');
-            ipAddressesDfs(s,index+1,pre,ans);
-        }else{
-            int prevTmp=pre.get(pre.size()-1);
-            int nextTmp=prevTmp*10+(s.charAt(index)-'0');
-            List<Integer> preBK=new ArrayList<>(pre);
-            if(nextTmp>0&&nextTmp<=255){
-                pre.remove(pre.size()-1);
-                pre.add(nextTmp);
-                ipAddressesDfs(s,index+1,pre,ans);
-
-                preBK.add((s.charAt(index)-'0'));
-                ipAddressesDfs(s,index+1,preBK,ans);
-            }else if(nextTmp>255){
-                pre.add((s.charAt(index)-'0'));
-                ipAddressesDfs(s,index+1,pre,ans);
-            }
-        }
-    }
-
-    public List<String> restoreIpAddresses(String s) {
-        List<String> ans=new ArrayList<>();
-        if(s==null||s.length()<4) return ans;
-        List<Integer> pre=new ArrayList<>();
-        ipAddressesDfs(s,0,pre,ans);
-        return ans;
-    }
-
-
-    @Test
-    public void testRestoreIpAddresses(){
-        for(String ip:restoreIpAddresses("10001")){
-            System.out.println(ip);
         }
     }
 
@@ -784,63 +673,6 @@ public class LeetCodeEx {
         System.out.println(checkInclusion("adc","dcda"));
     }
 
-    //加了缓存似乎更慢了...
-//    Map<String,String> d=new HashMap<>();
-    private boolean matchStr(String s1,String s2){
-//        if(d.containsKey(s1)&&d.get(s1).equals(s2)) return true;
-//        if(d.containsKey(s2)&&d.get(s2).equals(s1)) return true;
-        int cnt=0;
-        for(int i=0;i<s1.length();++i){
-            if(s2.charAt(i)!=s1.charAt(i)){
-                ++cnt;
-                if(cnt==2) break;
-            }
-        }
-        if(cnt==1){
-//            d.put(s1,s2);
-//            d.put(s2,s1);
-            return true;
-        }else return false;
-    }
-
-    private List<String> getMatchStrs(String tmpStr,List<String> wordList){
-        List<String> result=new ArrayList<>();
-        for (String s1 : wordList) {
-            if(matchStr(s1,tmpStr)) result.add(s1);
-        }
-        return result;
-    }
-
-    //127. Word Ladder
-    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
-        if(beginWord.equals(endWord)) return 1;
-        if(wordList==null||wordList.size()==0) return 0;
-        if(!wordList.contains(endWord)) return 0;
-        Queue<String> q=new ArrayDeque<>();
-        Queue<Integer> cntQ=new ArrayDeque<>();
-        q.add(beginWord);
-        cntQ.add(1);
-        while (!q.isEmpty()){
-            String tmpStr=q.poll();
-            int cnt=cntQ.poll();
-            if(tmpStr.equals(endWord)){
-                return cnt;
-            }
-            for (String s1 : getMatchStrs(tmpStr,wordList)) {
-                wordList.remove(s1);
-                q.add(s1);
-                cntQ.add(cnt+1);
-            }
-        }
-        return 0;
-    }
-
-    @Test
-    public void testLadderLength(){
-        List<String> wordList=new ArrayList<>(Arrays.asList("hot","dot","dog","lot","log","cog"));
-        System.out.println(ladderLength("hit","cog",wordList));
-    }
-
 
     //positive==true: high low high low ....
     //positive==false: low high low high ....
@@ -891,15 +723,31 @@ public class LeetCodeEx {
 
 
     //215. Kth Largest Element in an Array
+//    public int findKthLargest(int[] nums, int k) {
+//        PriorityQueue<Integer> q=new PriorityQueue<>(k);
+//        q.add(nums[0]);
+//        for(int i=1;i<nums.length;++i){
+//            if(q.size()<k) q.add(nums[i]);
+//            else{
+//                if(q.peek()<nums[i]){
+//                    q.poll();
+//                    q.add(nums[i]);
+//                }
+//            }
+//        }
+//        return q.peek();
+//    }
+
+    //使用自实现的最小堆
     public int findKthLargest(int[] nums, int k) {
-        PriorityQueue<Integer> q=new PriorityQueue<>(k);
-        q.add(nums[0]);
+        MinHeap q=new MinHeap(k);
+        q.push(nums[0]);
         for(int i=1;i<nums.length;++i){
-            if(q.size()<k) q.add(nums[i]);
+            if(q.size()<k) q.push(nums[i]);
             else{
                 if(q.peek()<nums[i]){
                     q.poll();
-                    q.add(nums[i]);
+                    q.push(nums[i]);
                 }
             }
         }
@@ -908,17 +756,15 @@ public class LeetCodeEx {
 
     @Test
     public void testFindKthLargest(){
-        int[] array={3,2,3,1,2,4,5,5,6};
-        System.out.println(findKthLargest(array,4));
+        int[] array={3,2,3,1,2,4,5,5,6,7,7,8,2,3,1,1,1,10,11,5,6,2,4,7,8,5,6};
+        System.out.println(findKthLargest(array,20));
     }
 
 
-
-
+    //264. Ugly Number II
     public int nthUglyNumber(int n) {
         if(n<=0) return -1;
         if(n==1) return 1;
-
         int[] nums=new int[n];
         nums[0]=1;
         int p2=0,p3=0,p5=0;
@@ -931,7 +777,6 @@ public class LeetCodeEx {
             while (5*nums[p5]<=nums[pos]) ++p5;
             ++pos;
         }
-
         return nums[n-1];
     }
 
@@ -1027,7 +872,6 @@ public class LeetCodeEx {
     }
 
 
-
     //56. Merge Intervals
     public int[][] merge(int[][] intervals) {
         if(intervals==null||intervals.length<=1) return intervals;
@@ -1079,7 +923,7 @@ public class LeetCodeEx {
     }
 
     //220. Contains Duplicate III
-    public static boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+    public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
         int len=nums.length;
         if(len<=1||k<=0||t<0) return false;
         TreeMap<Long,Integer> mp=new TreeMap<>();
@@ -1264,56 +1108,6 @@ public class LeetCodeEx {
         System.out.println();
     }
 
-
-    int decodeCnt=0;
-    private void numDecodingsDfs(String s, int index){
-        if(index==s.length()){
-            ++decodeCnt;
-            return;
-        }
-        int nextTmp1=s.charAt(index)-'0';
-        if(nextTmp1!=0) numDecodingsDfs(s,index+1);
-        if(index+1!=s.length()&&nextTmp1!=0){
-            int nextTmp2=nextTmp1*10+s.charAt(index+1)-'0';
-            if(nextTmp2>=1&&nextTmp2<=26) numDecodingsDfs(s,index+2);
-        }
-    }
-
-    //91. Decode Ways
-    public int numDecodings(String s) {
-        //dfs,指数时间复杂度
-//        numDecodingsDfs(s,0);
-//        return decodeCnt;
-
-        //dp: O(N^2)
-        int len=s.length();
-        int[] dp=new int[len];
-        int cnt=0;
-        for(int i=len-1;i>=0;--i){
-            cnt=0;
-            int tmp1=s.charAt(i)-'0';
-            if(tmp1==0) continue;
-            if(i<len-1) cnt=dp[i+1];
-            else cnt=1;
-            if(i<len-1){
-                int tmp2=s.charAt(i+1)-'0';
-                int decodeTmp=tmp1*10+tmp2;
-                if(decodeTmp<=26){
-                    if(i<len-2) cnt+=dp[i+2];
-                    else ++cnt;
-                }
-            }
-            dp[i]=cnt;
-        }
-        return cnt;
-    }
-
-    @Test
-    public void testNumDecodings(){
-        System.out.println(numDecodings("226"));
-    }
-
-
     //84. Largest Rectangle in Histogram
     public int largestRectangleArea(int[] heights) {
         if(heights==null||heights.length==0) return 0;
@@ -1349,157 +1143,7 @@ public class LeetCodeEx {
         System.out.println(largestRectangleArea(array));
     }
 
-
-    //62. Unique Paths
-    public int uniquePaths(int m, int n) {
-//        if(m<=0||n<=0) return 0;
-//        if(m==1||n==1) return 1;
-//        return uniquePaths(m-1,n)+uniquePaths(m,n-1);
-        if(m<=0||n<=0) return 0;
-        int[][] dp=new int[m+1][n+1];
-        for(int i=1;i<=m;++i) dp[i][1]=1;
-        for(int i=1;i<=n;++i) dp[1][i]=1;
-        for(int i=2;i<=m;++i){
-            for(int j=2;j<=n;++j){
-                dp[i][j]=dp[i-1][j]+dp[i][j-1];
-            }
-        }
-        return dp[m][n];
-    }
-
-    @Test
-    public void testUniquePaths(){
-        System.out.println(uniquePaths(51,9));
-    }
-
-    //63. Unique Paths II
-    public int uniquePathsWithObstacles(int[][] obstacleGrid) {
-        int m=obstacleGrid.length,n=obstacleGrid[0].length;
-        if(n<=0||obstacleGrid[m-1][n-1]==1||obstacleGrid[0][0]==1) return 0;
-        int[][] dp=new int[m+1][n+1];
-        for(int i=1;i<=m;++i){
-            for(int j=1;j<=n;++j){
-                if(i==1&&j==1)
-                    dp[i][j]=1;
-                else if(obstacleGrid[i-1][j-1]==0)
-                    dp[i][j]=dp[i-1][j]+dp[i][j-1];
-                else
-                    dp[i][j]=0;
-            }
-        }
-        return dp[m][n];
-    }
-
-//    public int uniquePathsWithObstacles(int[][] obstacleGrid) {
-//        int m=obstacleGrid.length,n=obstacleGrid[0].length;
-//        if(n <= 0 || obstacleGrid[m - 1][n - 1] == 1 || obstacleGrid[0][0] == 1) return 0;
-//        obstacleGrid[0][0]=1;
-//        for(int i=1;i<m;++i){
-//            if(obstacleGrid[i][0]==0){
-//                obstacleGrid[i][0]=obstacleGrid[i-1][0];
-//            }else obstacleGrid[i][0]=0;
-//        }
-//
-//        for(int i=1;i<n;++i){
-//            if(obstacleGrid[0][i]==0){
-//                obstacleGrid[0][i]=obstacleGrid[0][i-1];
-//            }else obstacleGrid[0][i]=0;
-//        }
-//
-//        for(int i=1;i<m;++i){
-//            for(int j=1;j<n;++j){
-//                if(obstacleGrid[i][j]==0){
-//                    obstacleGrid[i][j]=obstacleGrid[i-1][j]+obstacleGrid[i][j-1];
-//                }else obstacleGrid[i][j]=0;
-//            }
-//        }
-//
-//        return obstacleGrid[m-1][n-1];
-//    }
-
-
-    @Test
-    public void testUniquePathsWithObstacles(){
-        int[][] array={{0,0,0},{1,0,1},{0,0,0}};
-        System.out.println(uniquePathsWithObstacles(array));
-    }
-
-    int pathNum=0;
-    int gridNum=0;
-    int[][] direction={{1,0},{0,1},{-1,0},{0,-1}};
-    boolean[][] vis;
-    private void uniquePathsIIIDfs(int curX,int curY,int[][] grid){
-        if(grid[curX][curY]==2&&gridNum==0){
-            ++pathNum;
-            return;
-        }
-        for(int i=0;i<4;++i){
-            int nextX=curX+direction[i][0],nextY=curY+direction[i][1];
-            if(nextX>=0&&nextX<grid.length&&nextY>=0&&nextY<grid[0].length){
-                if(!vis[nextX][nextY]&&(grid[nextX][nextY]==0||grid[nextX][nextY]==2)){
-                    vis[nextX][nextY]=true;
-                    --gridNum;
-                    uniquePathsIIIDfs(nextX,nextY,grid);
-                    ++gridNum;
-                    vis[nextX][nextY]=false;
-                }
-            }
-        }
-    }
-    //980. Unique Paths III
-    public int uniquePathsIII(int[][] grid) {
-        if(grid==null||grid.length==0||grid[0].length==0) return 0;
-        int m=grid.length,n=grid[0].length;
-        vis=new boolean[m][n];
-        int startX = -1,startY=-1;
-        for(int i=0;i<m;++i){
-            for(int j=0;j<n;++j){
-                if(grid[i][j]==1){
-                    startX=i;
-                    startY=j;
-                }
-                if(grid[i][j]!=-1) ++gridNum;
-            }
-        }
-        vis[startX][startY]=true;
-        --gridNum;//starting point's grid
-        uniquePathsIIIDfs(startX,startY,grid);
-        return pathNum;
-    }
-
-    @Test
-    public void testUniquePathsIII(){
-        int[][] array={{1,0,0,0},{0,0,0,0},{0,0,0,2}};
-        System.out.println(uniquePathsIII(array));
-    }
-
-    //64. Minimum Path Sum
-    public int minPathSum(int[][] grid) {
-        if(grid==null||grid[0].length==0) return 0;
-        int m=grid.length,n=grid[0].length;
-        int[][] dp=new int[m][n];
-        dp[0][0]=grid[0][0];
-        for(int i=1;i<m;++i) dp[i][0]=dp[i-1][0]+grid[i][0];
-        for(int j=1;j<n;++j) dp[0][j]=dp[0][j-1]+grid[0][j];
-        for(int i=1;i<m;++i){
-            for(int j=1;j<n;++j){
-                dp[i][j]=grid[i][j]+Math.min(dp[i-1][j],dp[i][j-1]);//state transition
-            }
-        }
-        return dp[m-1][n-1];
-    }
-
-    @Test
-    public void testMinPathSum(){
-        int[][] array= {
-                {1, 3, 1},
-                {1, 5, 1},
-                {4, 2, 1}
-        };
-        System.out.println(minPathSum(array));
-    }
-
-    //741. Cherry Pickup (failure...)
+    //741. Cherry Pickup (greedy method, failure...)
     public int cherryPickup(int[][] grid) {
         if(grid==null||grid[0].length==0) return 0;
         int m=grid.length,n=grid[0].length;
@@ -1599,24 +1243,172 @@ public class LeetCodeEx {
         System.out.println(cherryPickup(array));
     }
 
+    //122. Best Time to Buy and Sell Stock II
+    public int maxProfit(int[] prices) {
+        if(prices==null|prices.length<=1) return 0;
+        int len=prices.length;
+        int result=0;
+        for(int i=0;i<len-1;++i){
+            if(prices[i]<prices[i+1]){
+                result+=prices[i+1]-prices[i];
+            }
+        }
+        return result;
+    }
+
+    //并查集
+    class UnionFind{
+        int[] roots;
+        int size;
+        public UnionFind(int size) {
+            this.roots = new int[size];
+            for(int i=0;i<size;++i){
+                this.roots[i]=i;
+            }
+        }
+
+        private int findRoot(int i){
+            int root=i;
+            while(roots[root]!=root){//roots[i]==i就表示i的祖先是自己,即i就是祖先
+                root=roots[root];
+            }
+            //在查找的时候顺便进行路径压缩优化,即把i->tmpRoot这条路径上的非祖先节点全部直接指向tmpRoot
+            int tmpNode=i;
+            while (tmpNode!=roots[tmpNode]){
+                int fatherNode=roots[tmpNode];
+                roots[tmpNode]=root;//把i->root这条路径上的非祖先节点全部直接指向root
+                tmpNode=fatherNode;
+            }
+            return root;
+        }
+
+        public boolean isConnected(int i,int j){
+            return findRoot(i)==findRoot(j);
+        }
+
+        public void union(int i,int j){
+            roots[findRoot(j)]=findRoot(i);//j的root节点指向i的root节点, 即j -> i
+        }
+    }
+
+    //547. Friend Circles
+    public int findCircleNum(int[][] M) {
+        if(M==null||M.length==0) return 0;
+        int n=M.length;
+        UnionFind unionFind=new UnionFind(n);
+        for(int i=0;i<n;++i){
+            for(int j=0;j<i;++j){
+                if(M[i][j]==1){
+                    unionFind.union(i,j);
+                }
+            }
+        }
+        int result=0;
+        for(int i=0;i<n;++i){
+            if(unionFind.findRoot(i)==i){
+                ++result;
+            }
+        }
+        return result;
+    }
+
+    @Test
+    public void testFindCircleNum() {
+        System.out.println(findCircleNum(new int[][]{
+                {1,1,0},
+                {1,1,0},
+                {0,0,1}
+        }));
+    }
+
+
+
+    //668. Kth Smallest Number in Multiplication Table
+//    public int findKthNumber(int m, int n, int k) {
+//
+//    }
+
+
+    //快速排序
+    public void quickSort(int array[], int l, int r) {
+        if (l < r) {
+            //Swap(s[l], s[(l + r) / 2]); //将中间的这个数和第一个数交换 参见注1
+            int i = l, j = r, x = array[l];
+            while (i < j) {
+                while(i < j && array[j] > x) // 从右向左找第一个小于等于x的数
+                    j--;
+                if(i<j) array[i++] = array[j];//i++算是一个优化???
+
+                while(i < j && array[i] < x) // 从左向右找第一个大于等于x的数
+                    i++;
+                if(i<j) array[j--] = array[i];
+            }
+            array[i] = x;
+            quickSort(array, l, i - 1); // 递归调用
+            quickSort(array, i + 1, r);
+        }
+    }
+
+    @Test
+    public void testQuickSort() {
+        int[] array = {48, 6, 57, 42, 60, 72, 83, 88, 85};
+        quickSort(array,0,array.length-1);
+        for(int i=0;i<array.length;++i){
+            System.out.print(array[i]+" ");
+        }
+        System.out.println();
+    }
 
     @Test
     public static void test_1(){
-        int[] array={2,4,6,8,10,10,12,14,16};
-        System.out.println(Arrays.binarySearch(array,6));
-        Stream.of(2,4,6,8,10,10,12,14,16).filter(c -> c>=10).map(c->(char)(c+'a')).forEach(System.out::println);
-        System.out.println(MessageFormat.format("\n{0}-{1}","ss","dd"));
+//        int[] array={2,4,6,8,10,10,12,14,16};
+//        System.out.println(Arrays.binarySearch(array,6));
+//        Stream.of(2,4,6,8,10,10,12,14,16).filter(c -> c>=10).map(c->(char)(c+'a')).forEach(System.out::println);
+//        System.out.println(MessageFormat.format("\n{0}-{1}","ss","dd"));
+//
+//        List<Integer> l=new ArrayList<>(Arrays.asList(2,4,6,8,10,10,12,14,16));
+//        System.out.println(l);
+//        Collections.shuffle(l);
+//        System.out.println(l);
+//
+//        System.out.println(Arrays.stream(array).summaryStatistics());
+//
+//
+//        String[] tmp="3e".split("e");
+//        System.out.println(tmp.length);
 
-        List<Integer> l=new ArrayList<>(Arrays.asList(2,4,6,8,10,10,12,14,16));
-        System.out.println(l);
-        Collections.shuffle(l);
-        System.out.println(l);
 
-        System.out.println(Arrays.stream(array).summaryStatistics());
+//        System.out.println(Arrays.stream(array).reduce((x, y) -> x + y).getAsInt());
+
+//        PriorityQueue<Integer> q=new PriorityQueue<>((x,y)->Integer.compare(x,y));
+//        q.add(100);q.add(4);q.add(8);q.add(10);q.add(1);
+//        System.out.println(q.toString());
+//        while(!q.isEmpty())
+//            System.out.println(q.poll());
 
 
-        String[] tmp="3e".split("e");
-        System.out.println(tmp.length);
+//        List<Integer> list=new LinkedList<>(Arrays.asList(1,2,3,4,5,6,7,8,9));
+//        int pos=0,len=list.size();
+//        while(pos<len){
+//            if(list.get(pos)%2==0){
+//                list.remove(pos);
+//                --len;
+//            }else{
+//                ++pos;
+//            }
+//        }
+//        System.out.println(list);
+
+//        Iterator<Integer> iterator=list.iterator();
+////        list.removeIf(tmp -> tmp % 2 == 0);
+//        while(iterator.hasNext()){
+//            int tmp=iterator.next();
+//            if(tmp%2==0){
+//                iterator.remove();
+//            }
+//        }
+
+//        System.out.println(list);
     }
 
 }

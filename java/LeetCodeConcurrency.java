@@ -152,8 +152,8 @@ public class LeetCodeConcurrency {
             // releaseHydrogen.run() outputs "H". Do not change or remove this line.
             releaseHydrogen.run();
             if(count.get()==2){
-                o.release();
                 count.addAndGet(-2);
+                o.release();
             }
 
         }

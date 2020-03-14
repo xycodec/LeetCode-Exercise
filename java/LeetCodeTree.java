@@ -52,9 +52,9 @@ public class LeetCodeTree {
         if(rootIndex<inorder.size()){
             root.right=build(preorder.subList(rootIndex+1,preorder.size()),inorder.subList(rootIndex+1,inorder.size()));
         }
-
         return root;
     }
+
 
     public TreeNode buildTree(int[] preorder, int[] inorder) {
         if(preorder==null||inorder==null||preorder.length==0||inorder.length==0) return null;
@@ -752,5 +752,146 @@ public class LeetCodeTree {
         int[] ans=findRedundantDirectedConnection(array);
         System.out.println(ans[0]+", "+ans[1]);
     }
+
+
+    //208. Implement Trie (Prefix Tree)
+    //tip: 字典树
+    class Trie {
+        private TrieNode root;
+
+        class TrieNode{
+            char val;
+            boolean isEnd;
+            TrieNode[] children=new TrieNode[26];
+
+            public TrieNode(char val) {
+                this.val = val;
+            }
+        }
+
+        /** Initialize your data structure here. */
+        public Trie() {
+            this.root = new TrieNode(' ');
+        }
+
+        /** Inserts a word into the trie. */
+        public void insert(String word) {
+            if(word==null||word.length()==0) return;
+            int len=word.length();
+            TrieNode tmpNode=root;
+            for(int i=0;i<len;++i){
+                char c=word.charAt(i);
+                if(tmpNode.children[c-'a']==null){
+                    tmpNode.children[c-'a']=new TrieNode(c);
+                }
+                tmpNode=tmpNode.children[c-'a'];
+            }
+            tmpNode.isEnd=true;
+        }
+
+        /** Returns if the word is in the trie. */
+        public boolean search(String word) {
+            if(word==null||word.length()==0) return false;
+            int len=word.length();
+            TrieNode tmpNode=root;
+            for(int i=0;i<len;++i){
+                char c=word.charAt(i);
+                if(tmpNode.children[c-'a']==null){
+                    return false;
+                }
+                tmpNode=tmpNode.children[c-'a'];
+            }
+            return tmpNode.isEnd;
+        }
+
+        /** Returns if there is any word in the trie that starts with the given prefix. */
+        public boolean startsWith(String prefix) {
+            if(prefix==null||prefix.length()==0) return false;
+            int len=prefix.length();
+            TrieNode tmpNode=root;
+            for(int i=0;i<len;++i){
+                char c=prefix.charAt(i);
+                if(tmpNode.children[c-'a']==null){
+                    return false;
+                }
+                tmpNode=tmpNode.children[c-'a'];
+            }
+            return true;
+        }
+    }
+
+    @Test
+    public void testTrie() {
+        Trie trie=new Trie();
+        trie.insert("apple");
+        System.out.println(trie.search("apple"));
+        System.out.println(trie.search("app"));
+        System.out.println(trie.startsWith("app"));
+        trie.insert("app");
+        System.out.println(trie.search("app"));
+    }
+
+    private void findWordsDfs(char[][] board,int x,int y,String curStr,boolean[][] vis,Trie trie,Set<String> result){
+        if(x<0||x>=board.length||y<0||y>=board[0].length) return;
+        if(vis[x][y]) return;
+        curStr+=board[x][y];
+        //tip: 使用字典树进行快速判断
+        if(!trie.startsWith(curStr)) return;
+        if(trie.search(curStr))
+            result.add(curStr);//这里不return的原因是可能有这样的单词: app,apple,匹配到app的话就return,可能会错过匹配apple
+
+        vis[x][y]=true;
+        findWordsDfs(board,x+1,y,curStr,vis,trie,result);
+        findWordsDfs(board,x-1,y,curStr,vis,trie,result);
+        findWordsDfs(board,x,y+1,curStr,vis,trie,result);
+        findWordsDfs(board,x,y-1,curStr,vis,trie,result);
+        vis[x][y]=false;
+    }
+
+    //212. Word Search II (使用字典树)
+    public List<String> findWords(char[][] board, String[] words) {
+        if(board==null||words==null||board.length==0||words.length==0) return new ArrayList<>();
+        Trie trie=new Trie();
+        for(int i=0;i<words.length;++i){
+            trie.insert(words[i]);
+        }
+        int m=board.length,n=board[0].length;
+        boolean[][] vis=new boolean[m][n];
+        Set<String> result=new HashSet<>();//使用HashSet,防止重复添加,因为可能有多条路径匹配一个单词
+        for(int i=0;i<m;++i){
+            for(int j=0;j<n;++j){
+                findWordsDfs(board,i,j,"",vis,trie,result);
+            }
+        }
+        return new ArrayList<>(result);
+    }
+
+    @Test
+    public void testFindWords() {
+        System.out.println(findWords(new char[][]{
+                {'o','a','a','n'},
+                {'e','t','a','e'},
+                {'i','h','k','r'},
+                {'i','f','l','v'}
+        },new String[]{"oath","pea","eat","rain"}));
+    }
+
+    //236. Lowest Common Ancestor of a Binary Tree
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if(root==null||p==root||q==root) return root;//root==null,返回null代表没有p,q,否则找到了就返回p,q中的任意一个
+        TreeNode left=lowestCommonAncestor(root.left,p,q);//p,q是否在左子树里
+        TreeNode right=lowestCommonAncestor(root.right,p,q);//p,q是否在右子树里
+        if(left==null&&right!=null){//左子树中没有p,q,那么就去右子树中找
+            return right;
+        }else if(left!=null&&right==null) {//右子树中没有p,q,那么就去左子树中找
+            return left;
+        }else if(left==null&&right==null){
+//            System.out.println(root.val);
+            return null;
+        }else {
+            return root;//左右子树中各存在p或q,此时root就是其最低公共祖先
+        }
+    }
+
 
 }
