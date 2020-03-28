@@ -15,13 +15,13 @@ import java.util.function.*;
  **/
 public class LeetCodeGraph {
     private final int INF=Integer.MAX_VALUE;
-    private void Dijkstra(int v0,int[][] graph,int[] dist){//v0-> otherNode
+    private void dijkstra(int v0,int[][] graph,int[] dist){//v0-> otherNode
         boolean[] s=new boolean[graph.length];//待扩展的节点集合,false:未扩展
-        int[] prev_node=new int[graph.length];//存放前向节点
+        int[] prevNode=new int[graph.length];//存放前向节点
         for(int i=0;i<graph.length;++i){//初始化
             dist[i]=graph[v0][i];
-            if(i!=v0&&dist[i]<INF) prev_node[i]=v0;
-            else prev_node[i]=-1;
+            if(i!=v0&&dist[i]<INF) prevNode[i]=v0;
+            else prevNode[i]=-1;
         }
         s[v0]=true;
         dist[v0]=0;
@@ -38,7 +38,7 @@ public class LeetCodeGraph {
             for(int k=0;k<graph.length;++k){
                 if(!s[k]&&graph[u][k]<INF&&dist[u]+graph[u][k]<dist[k]){
                     dist[k]=dist[u]+graph[u][k];
-                    prev_node[k]=u;
+                    prevNode[k]=u;
                 }
             }
         }

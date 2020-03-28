@@ -1,16 +1,10 @@
 package com.xycode.leetcode;
 
-import com.google.common.collect.Lists;
 import com.xycode.heap.MinHeap;
 import org.testng.annotations.Test;
-import sun.misc.Unsafe;
 
-import java.lang.reflect.Array;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicIntegerArray;
-import java.util.stream.Stream;
 
 /**
  * ClassName: LeetCodeEx
@@ -44,55 +38,6 @@ public class LeetCodeEx {
             }
         }
         return list.get(nums.length-1)+1>0?list.get(nums.length-1)+1:1;
-    }
-
-
-    //30. Substring with Concatenation of All Words
-    public List<Integer> findSubstring(String s, String[] words) {
-        List<Integer> ans=new ArrayList<>();
-        if(words.length==0) return ans;
-        int len=words[0].length();
-        if(len==0){
-            for(int i=0;i<words.length;++i) ans.add(i);
-            return ans;
-        }
-        Map<String,Integer> mp=new HashMap<>();
-        for (String word : words) {
-            if (!mp.containsKey(word)) mp.put(word, 1);
-            else mp.put(word, mp.get(word) + 1);
-        }
-        int index=0;
-        int threshold=s.length()-words.length*len+1;
-        while(index<threshold){
-            int tmpIndex=index;
-            Map<String,Integer> tmpMp=new HashMap<>(mp);
-            int total=words.length;
-            while(tmpIndex<s.length()){
-                String tmpStr=s.substring(tmpIndex,tmpIndex+len);
-                if(tmpMp.containsKey(tmpStr)){
-                    int cnt=tmpMp.get(tmpStr);
-                    if(cnt>0) {
-                        tmpMp.put(tmpStr,cnt-1);
-                        if(total>0) {
-                            --total;
-                            if(total==0){
-                                ans.add(index);
-                                break;
-                            }
-                            tmpIndex+=len;
-                        }
-                    }else break;
-                }else break;
-            }
-            ++index;
-        }
-
-        return ans;
-    }
-
-    @Test
-    public void testFindSubstring(){
-        System.out.println(findSubstring("barfoothefoobarman", new String[]{"foo", "bar"}));
     }
 
 
@@ -722,45 +667,6 @@ public class LeetCodeEx {
     }
 
 
-    //215. Kth Largest Element in an Array
-//    public int findKthLargest(int[] nums, int k) {
-//        PriorityQueue<Integer> q=new PriorityQueue<>(k);
-//        q.add(nums[0]);
-//        for(int i=1;i<nums.length;++i){
-//            if(q.size()<k) q.add(nums[i]);
-//            else{
-//                if(q.peek()<nums[i]){
-//                    q.poll();
-//                    q.add(nums[i]);
-//                }
-//            }
-//        }
-//        return q.peek();
-//    }
-
-    //使用自实现的最小堆
-    public int findKthLargest(int[] nums, int k) {
-        MinHeap q=new MinHeap(k);
-        q.push(nums[0]);
-        for(int i=1;i<nums.length;++i){
-            if(q.size()<k) q.push(nums[i]);
-            else{
-                if(q.peek()<nums[i]){
-                    q.poll();
-                    q.push(nums[i]);
-                }
-            }
-        }
-        return q.peek();
-    }
-
-    @Test
-    public void testFindKthLargest(){
-        int[] array={3,2,3,1,2,4,5,5,6,7,7,8,2,3,1,1,1,10,11,5,6,2,4,7,8,5,6};
-        System.out.println(findKthLargest(array,20));
-    }
-
-
     //264. Ugly Number II
     public int nthUglyNumber(int n) {
         if(n<=0) return -1;
@@ -903,50 +809,6 @@ public class LeetCodeEx {
         return ans;
     }
 
-    public int maxSubArray(int[] nums) {
-        if(nums==null||nums.length==0) return 0;
-        if(nums.length==1) return nums[0];
-        int tmpSum=0;
-        int maxSum=Integer.MIN_VALUE;
-        for (int num : nums) {
-            if (tmpSum <= 0) tmpSum = num;
-            else tmpSum += num;
-            if (tmpSum > maxSum) maxSum = tmpSum;
-        }
-        return maxSum;
-    }
-
-    @Test
-    public void testMaxSubArray(){
-        int[] array={-2,1,-3,4,-1,2,1,-5,4};
-        System.out.println(maxSubArray(array));
-    }
-
-    //220. Contains Duplicate III
-    public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
-        int len=nums.length;
-        if(len<=1||k<=0||t<0) return false;
-        TreeMap<Long,Integer> mp=new TreeMap<>();
-        for(int i=0;i<len;++i){
-            Map<Long,Integer> tmpMap=mp.subMap((long)nums[i]-t,(long)nums[i]+t+1);
-            if(tmpMap.isEmpty()){
-                mp.put((long)nums[i],i);
-            }else{
-                Map<Long,Integer> tmp=new HashMap<>();
-                for(long key:tmpMap.keySet()){
-                    int tmpIndex=tmpMap.get(key);
-                    if(i-tmpIndex<=k){
-                        return true;
-                    }else{
-                        tmp.put((long)nums[i],i);
-                    }
-                }
-                mp.putAll(tmp);
-            }
-        }
-        return false;
-    }
-
     class RandomFlipMatrix {
 //        List<Integer> rows=new ArrayList<>();
 //        List<Integer> cols=new ArrayList<>();
@@ -1082,67 +944,6 @@ public class LeetCodeEx {
         System.out.println(isNumber("3.e2"));
     }
 
-    //498. Diagonal Traverse
-    public int[] findDiagonalOrder(int[][] matrix) {
-        if (matrix == null || matrix.length == 0 || matrix[0].length == 0) return new int[0];
-        int m = matrix.length, n = matrix[0].length;
-        int[] ans = new int[m * n];
-        int cnt = 0;
-        for (int i = 0; i < m + n - 1; ++i) {
-            if (i % 2 == 1) {
-                for (int j = Math.min(i, n - 1); j >= Math.max(i - m + 1, 0); --j)
-                    ans[cnt++] = matrix[i - j][j];
-            } else {
-                for (int j = Math.max(i - m + 1, 0); j <= Math.min(i, n - 1); ++j)
-                    ans[cnt++] = matrix[i - j][j];
-            }
-        }
-        return ans;
-    }
-
-    @Test
-    public void testFindDiagonalOrder(){
-        int[][] array={{1,2,3},{4,5,6},{7,8,9}};
-        for(int i:findDiagonalOrder(array))
-            System.out.print(i+" ");
-        System.out.println();
-    }
-
-    //84. Largest Rectangle in Histogram
-    public int largestRectangleArea(int[] heights) {
-        if(heights==null||heights.length==0) return 0;
-        if(heights.length==1) return heights[0];
-        int[] heightsTmp=new int[heights.length+1];
-        for(int i=0;i<heights.length;++i){
-            heightsTmp[i]=heights[i];
-        }
-        heightsTmp[heights.length]=0;
-        int len = heights.length+1;
-        int maxArea = 0;
-        int h, w;
-        Stack<Integer> st=new Stack<>();
-        for (int i = 0; i < len; i++) {
-            if (st.empty() || heightsTmp[st.peek()] < heightsTmp[i])
-                st.push(i);
-            else {
-                while (!st.empty() && heightsTmp[i] <= heightsTmp[st.peek()]) {
-                    h = heightsTmp[st.pop()];
-                    w = st.empty() ? i : i - (st.peek() + 1);
-                    maxArea = Math.max(maxArea, h * w);
-                }
-                st.push(i);
-            }
-        }
-
-        return maxArea;
-    }
-
-    @Test
-    public void testLargestRectangleArea(){
-        int[] array={2,1,5,6,2,3};
-        System.out.println(largestRectangleArea(array));
-    }
-
     //741. Cherry Pickup (greedy method, failure...)
     public int cherryPickup(int[][] grid) {
         if(grid==null||grid[0].length==0) return 0;
@@ -1244,6 +1045,7 @@ public class LeetCodeEx {
     }
 
     //122. Best Time to Buy and Sell Stock II
+    //tip: 贪心
     public int maxProfit(int[] prices) {
         if(prices==null|prices.length<=1) return 0;
         int len=prices.length;
@@ -1322,42 +1124,230 @@ public class LeetCodeEx {
     }
 
 
-
-    //668. Kth Smallest Number in Multiplication Table
-//    public int findKthNumber(int m, int n, int k) {
-//
+    //454. 4Sum II
+    //warn: TLE, 时间复杂度O(N^3)
+//    public int fourSumCount(int[] A, int[] B, int[] C, int[] D) {
+//        if(A==null||B==null||C==null||D==null) return 0;
+////        Arrays.sort(A);
+////        Arrays.sort(B);
+//        Arrays.sort(C);
+//        Arrays.sort(D);
+//        int ans=0;
+//        for(int i=0;i<A.length;++i){
+//            for(int j=0;j<B.length;++j){
+//                int tmp=-(A[i]+B[j]);
+//                int l=0,r=D.length-1;
+//                while(l<C.length&&r>=0){
+//                    if(C[l]+D[r]>tmp){
+//                        --r;
+//                    }else if(C[l]+D[r]<tmp){
+//                        ++l;
+//                    }else{
+//                        ++ans;//记录C[l]+D[r]==tmp
+//                        //固定tmpL,移动tmpR,计数
+//                        int tmpL=l+1,tmpR=r;
+//                        while(tmpL<C.length&&tmpR>=0&&C[tmpL]+D[tmpR]==tmp){
+//                            ++ans;
+//                            ++tmpL;
+//                        }
+//                        //固定tmpR,移动tmpL,计数
+//                        tmpL=l;
+//                        tmpR=r-1;
+//                        while(tmpL<C.length&&tmpR>=0&&C[tmpL]+D[tmpR]==tmp){
+//                            ++ans;
+//                            --tmpR;
+//                        }
+//                        ++l;
+//                        --r;
+//                    }
+//                }
+//            }
+//        }
+//        return ans;
 //    }
 
-
-    //快速排序
-    public void quickSort(int array[], int l, int r) {
-        if (l < r) {
-            //Swap(s[l], s[(l + r) / 2]); //将中间的这个数和第一个数交换 参见注1
-            int i = l, j = r, x = array[l];
-            while (i < j) {
-                while(i < j && array[j] > x) // 从右向左找第一个小于等于x的数
-                    j--;
-                if(i<j) array[i++] = array[j];//i++算是一个优化???
-
-                while(i < j && array[i] < x) // 从左向右找第一个大于等于x的数
-                    i++;
-                if(i<j) array[j--] = array[i];
+    //tip: 时间复杂度O(N^2),空间复杂度O(N^2),以空间换时间
+    public int fourSumCount(int[] A, int[] B, int[] C, int[] D) {
+        if(A==null||B==null||C==null||D==null) return 0;
+        Map<Integer,Integer> mp=new HashMap<>();
+        for(int a:A){
+            for(int b:B){
+                int sum=a+b;
+                mp.put(sum,mp.getOrDefault(sum,0)+1);
             }
-            array[i] = x;
-            quickSort(array, l, i - 1); // 递归调用
-            quickSort(array, i + 1, r);
         }
+        int ans=0;
+        for(int c:C){
+            for(int d:D){
+                ans+=mp.getOrDefault(-(c+d),0);
+            }
+        }
+        return ans;
     }
 
     @Test
-    public void testQuickSort() {
-        int[] array = {48, 6, 57, 42, 60, 72, 83, 88, 85};
-        quickSort(array,0,array.length-1);
-        for(int i=0;i<array.length;++i){
-            System.out.print(array[i]+" ");
-        }
-        System.out.println();
+    public void testFourSumCount() {
+        System.out.println(fourSumCount(new int[]{0,1,-1},new int[]{-1,1,0},new int[]{0,0,1},new int[]{-1,1,1}));
     }
+
+    // 134.gas-station
+    public int canCompleteCircuit(int[] gas, int[] cost) {
+        int n=gas.length;
+        for(int i=0;i<n;++i){
+            int total=gas[i]-cost[i];
+            int j=i;
+            while ((j+1)%n!=i&&total>=0){
+                j=(j+1)%n;
+                total+=gas[j]-cost[j];
+            }
+            if((j+1)%n==i&&total>=0) return i;
+        }
+        return -1;
+    }
+
+//    public int canCompleteCircuit(int[] gas, int[] cost) {
+//        int curCost = 0;
+//        int totalCost = 0;
+//        int startingPoint = 0;
+//
+//        for(int i = 0; i<gas.length ; i++){
+//            totalCost += gas[i] - cost[i];
+//            curCost +=  gas[i] - cost[i];
+//            if(curCost<0){
+//                curCost = 0;
+//                startingPoint = i+1;
+//            }
+//        }
+//        return (totalCost>=0)? startingPoint:-1;
+//    }
+
+    @Test
+    public void testCanCompleteCircuit() {
+        System.out.println(canCompleteCircuit(new int[]{1,2,3,4,5},new int[]{3,4,5,1,2}));
+    }
+
+
+
+    //668. Kth Smallest Number in Multiplication Table
+    //描述: 找到m*n乘法表中第K小的数
+    private int countNum(int num,int m,int n){//计算小于等于num的元素个数
+        int cnt=0;
+        for(int i=1;i<=m;++i){
+            cnt += Math.min(num / i, n);
+        }
+        return cnt;
+    }
+    public int findKthNumber(int m, int n, int k) {
+        //使用二分法
+        int l=1,r=m*n;
+        int mid=l+(r-l)/2;//防止溢出方式的取中位数
+        int ans=0;
+        while(l<=r){
+            int cnt=countNum(mid,m,n);
+            if(cnt<k){//大的元素过多,需要往右边搜索
+                l=mid+1;
+            }else{//小的元素过多,需要往左边搜索
+                r=mid-1;
+            }
+            mid=l+(r-l)/2;
+        }
+        return l;
+    }
+
+    @Test
+    public void testFindKthNumber() {
+        System.out.println(findKthNumber(42,34,401));
+    }
+
+    //227. Basic Calculator II
+    //计算器
+    public int calculateII(String s) {
+        Stack<Integer> stack=new Stack<>();
+        Queue<Character> queue=new LinkedList<>();
+        for(char c:s.toCharArray()){//去除空格
+            if(c!=' ') queue.add(c);
+        }
+        queue.add('T');//队尾加上'T',是为了最后一次运算(因为sign存储的总是上一个运算符号),实际上它是一个dummy,本身没有什么意义
+        char sign='+';
+        int num=0;
+        while(!queue.isEmpty()){
+            char c=queue.poll();
+            if(Character.isDigit(c)){
+                num=10*num+c-'0';//解析数字
+            }else{
+                //解析之前的符号,注意这里的sign总是上一个解析到的运算符号
+                if(sign=='+'){
+                    stack.add(num);
+                }else if(sign=='-'){
+                    stack.add(-num);
+                }else if(sign=='*'){
+                    stack.add(stack.pop()*num);
+                }else if(sign=='/'){
+                    stack.add(stack.pop()/num);
+                }
+                num=0;
+                sign=c;//更新符号
+            }
+        }
+        int ans=0;
+        while (!stack.isEmpty()){
+            ans+=stack.pop();
+        }
+        return ans;
+    }
+
+    private int calculateDfs(Queue<Character> queue){
+        Stack<Integer> stack=new Stack<>();
+        queue.add('T');//队尾加上'T',是为了最后一次运算(因为sign存储的总是上一个运算符号),实际上它是一个dummy,表示终止
+        char sign='+';
+        int num=0;
+        while(!queue.isEmpty()){
+            char c=queue.poll();
+            if(Character.isDigit(c)) {
+                num = 10 * num + c - '0';//解析数字
+            }else if(c=='('){
+                num=calculateDfs(queue);//当遇到左括号,需要递归计算括号中的值
+            }else{
+                //解析之前的符号,注意这里的sign总是上一个解析到的运算符号
+                if(sign=='+'){
+                    stack.add(num);
+                }else if(sign=='-'){
+                    stack.add(-num);
+                }else if(sign=='*'){
+                    stack.add(stack.pop()*num);
+                }else if(sign=='/'){
+                    stack.add(stack.pop()/num);
+                }
+                num=0;
+                sign=c;//更新符号
+                if(c==')'){//若遇到右括号,則表示之前括号中的表示式计算完成,因为此处可能是表达式计算的末尾,所以在这里判断
+                    break;
+                }
+            }
+        }
+        int ans=0;
+        while (!stack.isEmpty()){
+            ans+=stack.pop();
+        }
+        return ans;
+    }
+    //224. Basic Calculator
+    public int calculate(String s) {
+        Stack<Integer> stack=new Stack<>();
+        Queue<Character> queue=new LinkedList<>();
+        for(char c:s.toCharArray()){//去除空格
+            if(c!=' ') queue.add(c);
+        }
+        int ans=calculateDfs(queue);
+        return ans;
+    }
+
+    @Test
+    public void testCalculate() {
+        System.out.println(calculateII("3+2*20"));
+        System.out.println(calculate( "(1+(4+5+2)-3)+(6+8)"));
+    }
+
 
     @Test
     public static void test_1(){
@@ -1409,6 +1399,16 @@ public class LeetCodeEx {
 //        }
 
 //        System.out.println(list);
+
+//        PriorityQueue<Integer> q=new PriorityQueue<>((x,y)->-Integer.compare(x,y));
+//        q.add(5);
+//        q.add(11);
+//        q.add(7);
+//        q.add(2);
+//        q.add(3);
+//        q.add(17);
+//        System.out.println(q.toString());
+
     }
 
 }

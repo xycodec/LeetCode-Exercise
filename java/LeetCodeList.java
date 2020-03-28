@@ -149,6 +149,7 @@ public class LeetCodeList {
                 this.data=new HashMap<>();
             }
 
+            //notice: 头部是旧数据,尾部是新数据
             private int get(int key){
                 if(!data.containsKey(key)) return -1;
                 else{
@@ -164,24 +165,25 @@ public class LeetCodeList {
                         prevTmp.next=tmp.next;
                         tmp.next.prev=prevTmp;
                     }
-                    //更新tail
+
+                    //将tmp放到尾结点(最新)
                     tail.next=tmp;
                     tmp.prev=tail;
                     tmp.next=null;
-                    tail=tmp;
+                    tail=tmp;//更新tail
                     return tail.val;
                 }
             }
 
+            //notice: 头部是旧数据,尾部是新数据
             private void put(int key,int val){
                 if(data.containsKey(key)){//重复put,将更新的key移到链表末尾,size不用变
                     get(key);
                     tail.val=val;
                 }else{
-                    //头部是旧数据,尾部是新数据
                     if(size==capacity){
-                        data.remove(head.key);
-                        head=head.next;
+                        data.remove(head.key);//移除旧数据
+                        head=head.next;//更新head指针
                         if(head!=null) head.prev=null;
                         else tail=null;//head==null说明capacity==1,此时head==null,没节点了,将tail也置为null
                         --size;
@@ -193,8 +195,8 @@ public class LeetCodeList {
                         tail.next=tmp;
                         tmp.prev=tail;
                     }
-                    tail=tmp;
-                    data.put(key,tmp);
+                    tail=tmp;//更新tail指针
+                    data.put(key,tmp);//存储数据
                     ++size;
                 }
             }
@@ -219,7 +221,7 @@ public class LeetCodeList {
         private class LFUNode{
             int key;
             int val;
-            int count=1;
+            int count=0;
             long version;
             private LFUNode(int key,int val) {
                 this.key=key;
@@ -270,26 +272,99 @@ public class LeetCodeList {
             ++opVersion;
             ++node.count;
             node.version=opVersion;
-            if(!put) q.remove(node);//get or update operation
+            if(!put) q.remove(node);//因为频次增加了,所以需要调整优先队列;仅当队列中没有该node时,才不需要调整而直接添加即可
             q.add(node);
         }
-
     }
+
+    class LFUCacheBasedTreeSet {
+        private class LFUNode{
+            int key;
+            int val;
+            int count=0;
+            long version;
+            private LFUNode(int key,int val) {
+                this.key=key;
+                this.val = val;
+            }
+        }
+        Map<Integer,LFUNode> data=new HashMap<>();
+        TreeSet<LFUNode> treeSet;
+        int capacity;
+        long opVersion=0;//global operation version
+        public LFUCacheBasedTreeSet(int capacity) {
+            if(capacity<=0) return;
+            this.capacity=capacity;
+            treeSet=new TreeSet<>((x,y)->
+                    x.count==y.count?Long.compare(x.version,y.version):x.count-y.count);
+        }
+
+        public int get(int key) {
+            if(capacity<=0) return -1;
+            else{
+                LFUNode tmp=data.get(key);
+                if(tmp==null) return -1;
+                update(tmp,false);
+                return tmp.val;
+            }
+        }
+
+        public void put(int key,int value) {
+            if(capacity==0) return;
+            if(data.containsKey(key)){
+                LFUNode tmp=data.get(key);
+                tmp.val=value;
+                update(tmp,false);
+            }else{
+                if(data.size()==capacity){
+                    LFUNode tmp=treeSet.first();
+                    treeSet.pollFirst();
+                    data.remove(tmp.key);
+                }
+                LFUNode node=new LFUNode(key,value);
+                data.put(key,node);
+                update(node,true);
+            }
+        }
+
+        //方法私有化有助于提高性能, JIT更方便优化
+        private void update(LFUNode node,boolean put){
+            ++opVersion;
+            ++node.count;
+            node.version=opVersion;
+            if(!put) treeSet.remove(node);//get or update operation
+            treeSet.add(node);
+        }
+    }
+
 
     @Test
     public void testLFUCache(){
-        LFUCache cache = new LFUCache(3);
-        cache.put(2, 2);
-        cache.put(1, 1);
-        System.out.println(cache.get(2));
-        System.out.println(cache.get(1));
-        System.out.println(cache.get(2));
-        cache.put(3, 3);
-        cache.put(4, 4);
-        System.out.println(cache.get(3));
-        System.out.println(cache.get(2));
-        System.out.println(cache.get(1));
-        System.out.println(cache.get(4));
+//        LFUCache cache = new LFUCache(3);
+//        cache.put(2, 2);
+//        cache.put(1, 1);
+//        System.out.println(cache.get(2));
+//        System.out.println(cache.get(1));
+//        System.out.println(cache.get(2));
+//        cache.put(3, 3);
+//        cache.put(4, 4);
+//        System.out.println(cache.get(3));
+//        System.out.println(cache.get(2));
+//        System.out.println(cache.get(1));
+//        System.out.println(cache.get(4));
+
+        LFUCacheBasedTreeSet cacheBasedTreeSet = new LFUCacheBasedTreeSet(3);
+        cacheBasedTreeSet.put(2, 2);
+        cacheBasedTreeSet.put(1, 1);
+        System.out.println(cacheBasedTreeSet.get(2));
+        System.out.println(cacheBasedTreeSet.get(1));
+        System.out.println(cacheBasedTreeSet.get(2));
+        cacheBasedTreeSet.put(3, 3);
+        cacheBasedTreeSet.put(4, 4);
+        System.out.println(cacheBasedTreeSet.get(3));
+        System.out.println(cacheBasedTreeSet.get(2));
+        System.out.println(cacheBasedTreeSet.get(1));
+        System.out.println(cacheBasedTreeSet.get(4));
     }
 
     //61. Rotate List
@@ -318,6 +393,5 @@ public class LeetCodeList {
         }
         return head;
     }
-
 
 }

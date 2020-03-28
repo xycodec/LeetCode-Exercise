@@ -19,8 +19,8 @@ public class LeetCodeConcurrency {
 
     //1114. Print in Order
     public class Foo {
-        CountDownLatch countDownLatch1=new CountDownLatch(1);
-        CountDownLatch countDownLatch2=new CountDownLatch(1);
+        CountDownLatch firstSecond =new CountDownLatch(1);
+        CountDownLatch secondThree =new CountDownLatch(1);
         public Foo() {
 
         }
@@ -29,20 +29,20 @@ public class LeetCodeConcurrency {
 
             // printFirst.run() outputs "first". Do not change or remove this line.
             printFirst.run();
-            countDownLatch1.countDown();
+            firstSecond.countDown();
         }
 
         public void second(Runnable printSecond) throws InterruptedException {
 
             // printSecond.run() outputs "second". Do not change or remove this line.
-            countDownLatch1.await();
+            firstSecond.await();
             printSecond.run();
-            countDownLatch2.countDown();
+            secondThree.countDown();
         }
 
         public void third(Runnable printThird) throws InterruptedException {
-            countDownLatch1.await();
-            countDownLatch2.await();
+            firstSecond.await();
+            secondThree.await();
             // printThird.run() outputs "third". Do not change or remove this line.
             printThird.run();
         }

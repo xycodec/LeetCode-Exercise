@@ -1,7 +1,9 @@
 package com.xycode.leetcode;
 
+import com.google.common.hash.BloomFilter;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
 import java.util.*;
 
 /**
@@ -343,48 +345,54 @@ public class LeetCodeTree {
     //450. Delete Node in a BST
     public TreeNode deleteNode(TreeNode root, int key) {
         if(root==null) return null;
-        TreeNode dNode=root;
-        TreeNode parentNode=null;
-        while (dNode!=null&&key!=dNode.val){
-            parentNode=dNode;
-            if(key>dNode.val){
-                dNode=dNode.right;
+        TreeNode deletedNode=root;
+        TreeNode parentNode=null;//记录待删除节点的父节点
+        while (deletedNode!=null&&key!=deletedNode.val){
+            parentNode=deletedNode;
+            if(key>deletedNode.val){
+                deletedNode=deletedNode.right;
             }else{
-                dNode=dNode.left;
+                deletedNode=deletedNode.left;
             }
         }
-        if(dNode==null) return root;
-        if(dNode.left==null&&dNode.right==null){//待删除的是叶子节点
-            if(dNode==root) return null;//树中只有一个节点,并且是要删除根节点
-            if(parentNode.left==dNode) parentNode.left=null;
+        if(deletedNode==null) return root;
+        if(deletedNode.left==null&&deletedNode.right==null){//待删除的是叶子节点
+            if(deletedNode==root) return null;//树中只有一个节点,并且是要删除根节点
+            if(parentNode.left==deletedNode) parentNode.left=null;
             else parentNode.right=null;
-        }else if(dNode.left!=null&&dNode.right!=null){//待删除的节点的左右子节点都不为null
-            TreeNode tmp=dNode.right;//找到右子树的最左节点
-            parentNode=null;
+        }else if(deletedNode.left!=null&&deletedNode.right!=null){//待删除的节点的左右子节点都不为null
+            TreeNode tmp=deletedNode.right;//找到右子树的最左节点(也就是后继节点)
+            TreeNode successorParentNode=null;//记录后继节点的父节点
             while(tmp.left!=null){
-                parentNode=tmp;
+                successorParentNode=tmp;
                 tmp=tmp.left;
             }
-            if(dNode.right==tmp){//找到的是待删除节点的右子节点
-                dNode.val=tmp.val;
-                dNode.right=tmp.right;
+            if(deletedNode.right==tmp){//找到的后继节点是待删除节点的右子节点
+                deletedNode.val=tmp.val;
+                deletedNode.right=tmp.right;
                 tmp.right=null;
-            }else{//找到的是更深的子孙节点
-                parentNode.left=tmp.right;
-                dNode.val=tmp.val;
-                tmp.right=null;
+            }else{//找到的后继节点是更深的子孙节点
+                successorParentNode.left=tmp.right;
+
+                tmp.left=deletedNode.left;
+                tmp.right=deletedNode.right;
+                deletedNode.left=null;//help GC
+                deletedNode.right=null;//help GC
+                if(parentNode==null) root=tmp;//要删除的是根节点
+                else if(parentNode.left==deletedNode) parentNode.left=tmp;
+                else parentNode.right=tmp;
             }
         }else{//待删除的节点的子节点有一个为null,此时直接替换子树即可
-            if(dNode.left!=null){
-                TreeNode tmp=dNode.left;
-                dNode.val=tmp.val;
-                dNode.left=tmp.left;
-                dNode.right=tmp.right;
+            if(deletedNode.left!=null){
+                if(parentNode==null) root=deletedNode.left;//要删除的是根节点
+                else if(parentNode.left==deletedNode) parentNode.left=deletedNode.left;
+                else parentNode.right=deletedNode.left;
+                deletedNode.left=null;//help GC
             }else {
-                TreeNode tmp=dNode.right;
-                dNode.val=tmp.val;
-                dNode.left=tmp.left;
-                dNode.right=tmp.right;
+                if(parentNode==null) root=deletedNode.right;//要删除的是根节点
+                else if(parentNode.left==deletedNode) parentNode.left=deletedNode.right;
+                else parentNode.right=deletedNode.right;
+                deletedNode.right=null;//help GC
             }
         }
         return root;
@@ -410,7 +418,6 @@ public class LeetCodeTree {
 
     @Test
     public void testRangeSumBST(){
-
         System.out.println(rangeSumBST(deserialize("18 9 27 6 15 24 30 3 null 12 null 21"),18,24));
     }
 
@@ -876,9 +883,11 @@ public class LeetCodeTree {
         },new String[]{"oath","pea","eat","rain"}));
     }
 
-    //236. Lowest Common Ancestor of a Binary Tree
+
+    //LeetCode 236. Lowest Common Ancestor of a Binary Tree
+    //面试题68.树中两个节点的公共祖先
     public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
-        if(root==null||p==root||q==root) return root;//root==null,返回null代表没有p,q,否则找到了就返回p,q中的任意一个
+        if(root==null||p==root||q==root) return root;//root==null,返回null代表没有找到p,q,否则找到了就返回p,q中的任意一个
         TreeNode left=lowestCommonAncestor(root.left,p,q);//p,q是否在左子树里
         TreeNode right=lowestCommonAncestor(root.right,p,q);//p,q是否在右子树里
         if(left==null&&right!=null){//左子树中没有p,q,那么就去右子树中找
@@ -888,10 +897,9 @@ public class LeetCodeTree {
         }else if(left==null&&right==null){
 //            System.out.println(root.val);
             return null;
-        }else {
+        }else{//left!=null&&right!=null
             return root;//左右子树中各存在p或q,此时root就是其最低公共祖先
         }
     }
-
 
 }
