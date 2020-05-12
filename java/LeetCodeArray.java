@@ -4,6 +4,7 @@ import com.sun.org.apache.xalan.internal.xsltc.dom.MultiValuedNodeHeapIterator;
 import org.testng.annotations.Test;
 import sun.awt.image.ImageWatched;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -16,6 +17,7 @@ import java.util.*;
 public class LeetCodeArray {
 
     //53. Maximum Subarray
+    //描述: 求最大的子数组和
     public int maxSubArray(int[] nums) {
         if(nums==null||nums.length==0) return 0;
         if(nums.length==1) return nums[0];
@@ -91,7 +93,9 @@ public class LeetCodeArray {
         }
         return maxArea;
     }
+
     //85. Maximal Rectangle
+    //tip 描述: 给定一个充满0和1的二维二进制矩阵，找到只包含1的最大矩形并返回其面积。
     public int maximalRectangle(char[][] matrix) {
         if(matrix==null||matrix.length==0||matrix[0].length==0) return 0;
         char[][] heights=new char[matrix.length][matrix[0].length];
@@ -101,7 +105,7 @@ public class LeetCodeArray {
                 if(matrix[i][j]=='0') {
                     heights[i][j]='0';
                 }else{
-                    heights[i][j]= (char) (matrix[i][j]+heights[i-1][j]-'0');
+                    heights[i][j]= (char) (matrix[i][j]+heights[i-1][j]-'0');//累积成柱状图,然后使用单调栈求解最大面积
                 }
             }
         }
@@ -127,6 +131,7 @@ public class LeetCodeArray {
     }
 
     //498. Diagonal Traverse
+    //tip 描述: 给定一个M x N个元素的矩阵（M行，N列），按对角线顺序返回矩阵的所有元素
     public int[] findDiagonalOrder(int[][] matrix) {
         if (matrix == null || matrix.length == 0 || matrix[0].length == 0) return new int[0];
         int m = matrix.length, n = matrix[0].length;
@@ -178,6 +183,7 @@ public class LeetCodeArray {
 //        return false;
 //    }
 
+    //使用TreeMap可以很简单地求解
     public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
         if(nums==null||nums.length<=1||k<=0||t<0) return false;
         int len=nums.length;
@@ -199,7 +205,8 @@ public class LeetCodeArray {
     }
 
     //239. Sliding Window Maximum
-    //描述: 求数组中滑动窗口的最大值
+    //tip 描述: 求数组中滑动窗口的最大值
+    //使用双端队列记录窗口最大值
     public int[] maxSlidingWindow(int[] nums, int k) {
         if(nums==null||nums.length==0||nums.length<k) return new int[0];
         int[] ans=new int[nums.length-k+1];
@@ -382,5 +389,86 @@ public class LeetCodeArray {
     public void testFindSubstring(){
         System.out.println(findSubstring("barfoothefoobarmanbarfoothefoobarman", new String[]{"foo", "bar"}));
     }
+
+    //1190. Reverse Substrings Between Each Pair of Parentheses
+    //tip 描述: 将括号内的字符串反转(可能有递归形式的嵌套反转)
+    public String reverseParentheses(String s) {
+        if(s==null||s.length()==0) return "";
+        Stack<String> stack=new Stack<>();
+        for(int i=0;i<s.length();++i){
+            char c=s.charAt(i);
+            if(c!=')'){
+                stack.push(String.valueOf(c));
+            }else{
+                StringBuilder sb=new StringBuilder();
+                while(!stack.isEmpty()&&!stack.peek().equals("(")){
+                    sb.append(stack.pop());
+                }
+                stack.pop();//将无用的'('弹出
+                stack.push(sb.reverse().toString());//解析完括号,反转括号里的字符串
+            }
+        }
+        
+        StringBuilder ans=new StringBuilder();
+        while(!stack.isEmpty()){
+            ans.append(stack.pop());
+        }
+        return ans.reverse().toString();//栈中是逆序的,所以要reverse
+    }
+
+    @Test
+    public void testReverseParentheses() {
+        System.out.println(reverseParentheses("(ed(et(oc))el)"));
+    }
+
+    //921. Minimum Add to Make Parentheses Valid
+    public int minAddToMakeValid(String S) {
+        if(S==null||S.length()==0) return 0;
+        Stack<Character> stack=new Stack<>();
+        for(int i=0;i<S.length();++i){
+            char c=S.charAt(i);
+            if(stack.isEmpty()||c=='('){
+                stack.push(c);
+            }else{
+                if(c==')'&&stack.peek()=='('){//找到匹配的括号,就弹出
+                    stack.pop();
+                }else{
+                    stack.push(c);//添加不匹配的括号
+                }
+            }
+        }
+        return stack.size();
+    }
+
+    @Test
+    public void testMinAddToMakeValid() {
+        System.out.println(minAddToMakeValid("()))(())"));
+    }
+
+    //739. Daily Temperatures
+    public int[] dailyTemperatures(int[] T) {
+        if(T==null||T.length==0) return new int[0];
+        int[] ans=new int[T.length];
+        Stack<Integer> stack=new Stack<>();
+        stack.push(0);
+        for(int i=1;i<T.length;++i){
+            while(!stack.isEmpty()&&T[stack.peek()]<T[i]){//检测到是升温
+                ans[stack.peek()]=i-stack.peek();
+                stack.pop();
+            }
+            stack.push(i);
+        }
+        return ans;
+    }
+
+    @Test
+    public void testDailyTemperatures() {
+        System.out.println(Arrays.toString(dailyTemperatures(new int[]{73, 74, 75, 71, 69, 72, 76, 73})));
+    }
+
+    //480. Sliding Window Median
+//    public double[] medianSlidingWindow(int[] nums, int k) {
+//
+//    }
 
 }

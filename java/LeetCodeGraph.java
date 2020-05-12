@@ -152,5 +152,62 @@ public class LeetCodeGraph {
         return first;
     }
 
+    /**
+     * <p>210. Course Schedule II</p>
+     * 描述: 有numCourses个课程,课程id从0到n-1,prerequisites[][]记录对应课程的先修课程; 安排课程的学习顺序,
+     * 若无解(即有互相依赖的情况),返回一个空数组 (其实就是拓扑排序)
+     * @param numCourses
+     * @param prerequisites
+     * @return
+     */
+    public int[] findOrder(int numCourses, int[][] prerequisites) {
+        if(numCourses==0) return new int[0];
+        Map<Integer,Set<Integer>> relatedCourses=new HashMap<>();
+        for(int i=0;i<prerequisites.length;++i){//构建图,courseId -> relatedCourseId Set
+            if(relatedCourses.containsKey(prerequisites[i][0])){
+                relatedCourses.get(prerequisites[i][0]).add(prerequisites[i][1]);
+            }else{
+                Set<Integer> relatedCourseList=new HashSet<>();
+                relatedCourseList.add(prerequisites[i][1]);
+                relatedCourses.put(prerequisites[i][0],relatedCourseList);
+            }
+        }
+//        System.out.println(relatedCourses);
+        for(int i=0;i<numCourses;++i){//添加没有依赖课程的节点
+            if(!relatedCourses.containsKey(i)){
+                relatedCourses.put(i,new HashSet<>());
+            }
+        }
+//        System.out.println(relatedCourses);
+        int[] ans=new int[numCourses];
+        int cnt=0;//记录已安排的节点个数
+        Set<Integer> scheduledCourses=new HashSet<>();//记录已安排的节点
+        while(cnt<numCourses){
+            boolean circled=true;//记录图中是否有环,即相互依赖的情况
+            for(Map.Entry<Integer,Set<Integer>> entry:relatedCourses.entrySet()){
+                int courseId=entry.getKey();
+                Set<Integer> relatedCourseList= entry.getValue();
+                if(relatedCourseList.size()==0&&!scheduledCourses.contains(courseId)){
+                    ans[cnt++]=courseId;
+                    for(Map.Entry<Integer,Set<Integer>> entry2:relatedCourses.entrySet()){
+                        entry2.getValue().remove(courseId);
+                    }
+                    scheduledCourses.add(courseId);
+                    circled=false;
+                }
+            }
+            if(circled) {//若经过一轮迭代后,没能安排课程,那说明图中有环
+                return new int[0];
+            }
+        }
+        return ans;
+    }
+
+    @Test
+    public void testFindOrder() {
+        System.out.println(Arrays.toString(findOrder(3, new int[][]{
+                {1,0},{1,2},{0,1}
+        })));
+    }
 
 }

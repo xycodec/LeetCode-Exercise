@@ -1,6 +1,6 @@
 package com.xycode.leetcode;
 
-import com.xycode.heap.MinHeap;
+import com.xycode.utils.heap.MinHeap;
 import org.testng.annotations.Test;
 
 import java.util.*;

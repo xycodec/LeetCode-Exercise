@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1062,6 +1063,7 @@ public class CaptureOffer {
                     tmp[cnt++]=array[i++];
                 }else if(i>mid){
                     tmp[cnt++]=array[j++];
+
                 }else if(array[i]<array[j]){//真正的比较,从小到大
                     tmp[cnt++]=array[i++];
                 }else{
@@ -1091,6 +1093,7 @@ public class CaptureOffer {
                 516,648,727,667,465,849,455,181,486,149,588,233,144,174,557,67,746,550,474,162,268,142,463,221,882,576,
                 604,739,288,569,256,936,275,401,497,82,935,983,583,523,697,478,147,795,380,973,958,115,773,870,259,655,
                 446,863,735,784,3,671,433,630,425,930,64,266,235,187,284,665,874,80,45,848,38,811,267,575};
+//        int[] array={1,2,3,4,5,6,7,0};
         int ans=InversePairs(array);
         System.out.println(Arrays.toString(array));
         System.out.println(ans);
@@ -2427,7 +2430,6 @@ public class CaptureOffer {
         return ans;
     }
 
-
     // 牛牛找工作
     public static void findWork() throws IOException {
         StreamTokenizer tokenizer=new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in)));
@@ -2519,6 +2521,41 @@ public class CaptureOffer {
         }else{
             System.out.println("No");
         }
+    }
+
+    class Point{
+        int x,y;
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+    //生产口罩
+    //m名员工，n条生产线
+    //strategy[i][j].x表示人数，strategy[i][j].y表示能生产的口罩数
+    public int producemask(int n, int m, Point[][] strategy) {
+        int[][] dp=new int[n+1][m+1];
+        for(int i=1;i<=n;++i){
+            for(int j=1;j<=m;++j){
+                int tmp=-1;
+                for(Point p:strategy[i-1]){
+                    if(j-p.x>=0){
+                        tmp=Math.max(dp[i-1][j-p.x]+p.y,tmp);
+                    }
+                }
+                dp[i][j]=Math.max(dp[i-1][j],tmp);
+            }
+        }
+        return dp[n][m];
+    }
+
+    @Test
+    public void testProducemask() {
+        System.out.println(producemask(3,5,new Point[][]{
+                {new Point(1,3),new Point(2,4)},
+                {new Point(3,4),new Point(4,4)},
+                {new Point(8,8)}
+        }));
     }
 
     public static void main(String[] args) throws IOException {

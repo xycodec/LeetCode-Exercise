@@ -3,10 +3,7 @@ package com.xycode.leetcode;
 import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * ClassName: LeetCodeDP
@@ -164,6 +161,7 @@ public class LeetCodeDP {
     }
 
     //120. Triangle
+    //tip 描述: 给定一个三角形矩阵,找到一条从顶到底部的路径,使得路径的权重和最小,返回最小的权重和.(只能移动到相邻的节点)
     //从下往上递推(状态转移方程): dp[i][j]=min{dp[i+1][j],dp[i+1][j+1]} + triangle[i][j]
     public int minimumTotal(List<List<Integer>> triangle) {
         if(triangle==null||triangle.size()==0) return 0;
@@ -277,7 +275,6 @@ public class LeetCodeDP {
     }
 
 
-
     /**
      * 322. Coin Change
      * tip 描述: 给定一系列货币的面值,给定一个目标值,问兑换到目标值的最少货币数是多少
@@ -292,7 +289,7 @@ public class LeetCodeDP {
     public int coinChange(int[] coins, int amount) {
         if(coins==null||coins.length==0||amount<0) return -1;
         int[] dp=new int[amount+1];
-        Arrays.fill(dp,Integer.MAX_VALUE-1);//因为是求最小的硬币数(跳数),所以这里需要初始化一个很大的值
+        Arrays.fill(dp,Integer.MAX_VALUE>>1);//因为是求最小的硬币数(跳数),所以这里需要初始化一个很大的值
         dp[0]=0;
         for(int i=1;i<=amount;++i){
             for(int j=0;j<coins.length;++j){
@@ -308,7 +305,7 @@ public class LeetCodeDP {
      * <p>518. Coin Change 2</p>
      * tip 描述: 给定一系列货币的面值,给定一个目标值,问兑换到目标值的方案数有多少?
      * dp[i][j] 的含义是：在可以任意使用coins[0..i]货币的情况下,组成钱数j有多少种方法
-     * 初始化: 当j==0时,即兑换0元,这时dp[i][0]=1; 当i==0时,即只使用coins[i]兑换j元的方案数,此时dp[0][j]=(j%coins[i]==0)?1:0;
+     * 初始化: 当j==0时,即兑换0元,这时dp[i][0]=1; 当i==0时,即只使用coins[0]兑换j元的方案数,此时dp[0][j]=(j%coins[0]==0)?1:0;
      * 状态转移方程: 当j>=coins[i]时,dp[i][j]=dp[i-1][j]+dp[i][j-coins[i]]; 当j<coins[i]时,dp[i][j]=dp[i-1][j];
      * @param amount
      * @param coins
@@ -428,14 +425,17 @@ public class LeetCodeDP {
             if(s2.charAt(0)==s1.charAt(i)) {
                 dp[i][0]=1;
                 ans=1;
-            } else dp[i][0]=dp[i-1][0];//子序列未必连续,所以序列长度取前面那个值
+            } else {
+                dp[i][0]=dp[i-1][0];//子序列未必连续,所以序列长度取前面那个值
+            }
         }
         for(int j=1;j<len2;++j){
             if(s1.charAt(0)==s2.charAt(j)) {
                 dp[0][j]=1;
                 ans=1;
+            } else {
+                dp[0][j]=dp[0][j-1];
             }
-            else dp[0][j]=dp[0][j-1];
         }
 
         for(int i=1;i<len1;++i){
@@ -459,27 +459,32 @@ public class LeetCodeDP {
     /**
      * <p>718. Maximum Length of Repeated Subarray</p>
      * tip 描述: 给定两个数组,找到长度最长的公共子数组,返回其长度(其实就是最长公共子串问题(子串是连续的));
-     * dp[i][j]: s1到第i个字符,s2到第j个字符,所形成的最长公共子数组的长度
+     * 定义dp[i][j]: s1到第i个字符,s2到第j个字符,所形成的最长公共子数组的长度
      * @param A
      * @param B
      * @return
      */
-
     public int findLength(int[] A, int[] B) {
         if(A==null||B==null||A.length==0||B.length==0) return 0;
         int len1=A.length,len2=B.length;
         int[][] dp=new int[len1][len2];
+        int ans=0;
         for(int i=0;i<len1;++i){
-            if(A[i]==B[0]) dp[i][0]=1;
+            if(A[i]==B[0]) {
+                dp[i][0]=1;//若有和第一个数字相同的,那么就初始化为1
+                ans=1;
+            }
         }
         for(int j=0;j<len2;++j){
-            if(A[0]==B[j]) dp[0][j]=1;
+            if(A[0]==B[j]) {
+                dp[0][j]=1;//若有和第一个数字相同的,那么就初始化为1
+                ans=1;
+            }
         }
-        int ans=0;
         for(int i=1;i<len1;++i){
             for(int j=1;j<len2;++j){
                 if(A[i]==B[j]){
-                    dp[i][j]=dp[i-1][j-1]+1;//子串必须连续,所以dp[i][j]只能从dp[i-1][j-1]出转移而来
+                    dp[i][j]=dp[i-1][j-1]+1;//子串必须连续,所以dp[i][j]只能从dp[i-1][j-1]处转移而来
                 }
                 ans=Math.max(ans,dp[i][j]);
             }
@@ -536,7 +541,7 @@ public class LeetCodeDP {
         for(int i=1;i<len1;++i){
             for(int j=1;j<len2;++j){
                 if(A[i]==B[j]){
-                    dp[i][j]=dp[i-1][j-1]+1;//子串必须连续,所以dp[i][j]只能从dp[i-1][j-1]出转移而来
+                    dp[i][j]=dp[i-1][j-1]+1;//子串必须连续,所以dp[i][j]只能从dp[i-1][j-1]处转移而来
                 }
                 ans=Math.max(ans,dp[i][j]);
             }
@@ -557,7 +562,7 @@ public class LeetCodeDP {
      * 给定一个字符串s,问最少添加几个字符使得字符串变成回文串
      * dp[i][j]表示从i位置到j位置构成回文串需要最少添加的字符数量
      * when s[i]==s[j]; dp[i][j]=dp[i+1][j-1]
-     * when s[i]!=s[j]; dp[i][j]=min{dp[i+1][j],dp[i][j-1]}
+     * when s[i]!=s[j]; dp[i][j]=min{dp[i+1][j],dp[i][j-1]}+1
      * 也有其它的解法,即先求出s的最长回文序列的长度L,那么答案就是s.length()-L
      * @param s
      * @return
@@ -582,7 +587,34 @@ public class LeetCodeDP {
 
     @Test
     public void testMinAdd() {
-        System.out.println(minAdd("abacba"));
+        System.out.println(minAdd("abb"));
+    }
+
+    /**
+     * 907. Sum of Subarray Minimums
+     * 描述: 给一个数组,求所有连续子数组的最小值的和,返回结果对1e9+7取模
+     * 定义dp[i]: 表示以数字 A[i-1] 结尾的所有子数组最小值之和
+     */
+    public int sumSubarrayMins(int[] A) {
+        if(A==null||A.length==0) return 0;
+        int ans=0,M= (int) (1e9+7);
+        Stack<Integer> stack=new Stack<>();//单调栈记录前一个较小的值
+        stack.push(-1);
+        int[] dp=new int[A.length+1];
+        for(int i=0;i<A.length;++i){
+            while (stack.peek()!=-1&&A[i]<=A[stack.peek()]){//栈顶元素就是前面第一个比 A[i]小的数字
+                stack.pop();
+            }
+            dp[i+1]=(dp[stack.peek()+1]+(i-stack.peek())*A[i])%M;
+            ans=(ans+dp[i+1])%M;
+            stack.push(i);
+        }
+        return ans;
+    }
+
+    @Test
+    public void testSumSubarrayMins() {
+        System.out.println(sumSubarrayMins(new int[]{3,1,2,4}));
     }
 
 }

@@ -343,6 +343,7 @@ public class LeetCodeTree {
 
 
     //450. Delete Node in a BST
+    //tip 描述: 在一颗二叉搜索树中删除一个节点
     public TreeNode deleteNode(TreeNode root, int key) {
         if(root==null) return null;
         TreeNode deletedNode=root;
@@ -368,20 +369,21 @@ public class LeetCodeTree {
                 tmp=tmp.left;
             }
             if(deletedNode.right==tmp){//找到的后继节点是待删除节点的右子节点
-                deletedNode.val=tmp.val;
-                deletedNode.right=tmp.right;
-                tmp.right=null;
+                if(parentNode==null) root=tmp;//要删除的是根节点
+                else if(parentNode.left==deletedNode) parentNode.left=tmp;
+                else parentNode.right=tmp;
+                tmp.left=deletedNode.left;
             }else{//找到的后继节点是更深的子孙节点
                 successorParentNode.left=tmp.right;
 
                 tmp.left=deletedNode.left;
                 tmp.right=deletedNode.right;
-                deletedNode.left=null;//help GC
-                deletedNode.right=null;//help GC
                 if(parentNode==null) root=tmp;//要删除的是根节点
                 else if(parentNode.left==deletedNode) parentNode.left=tmp;
                 else parentNode.right=tmp;
             }
+            deletedNode.left=null;//help GC
+            deletedNode.right=null;//help GC
         }else{//待删除的节点的子节点有一个为null,此时直接替换子树即可
             if(deletedNode.left!=null){
                 if(parentNode==null) root=deletedNode.left;//要删除的是根节点
@@ -856,6 +858,8 @@ public class LeetCodeTree {
     }
 
     //212. Word Search II (使用字典树)
+    //tip 描述: 给定一个2维字母列表和一个单词列表,在二维列表中找单词,每个单词都必须由连续相邻单元格的字母构成，方向为上下左右。
+    // 同一个字母单元格在一个单词中不能使用多次。
     public List<String> findWords(char[][] board, String[] words) {
         if(board==null||words==null||board.length==0||words.length==0) return new ArrayList<>();
         Trie trie=new Trie();

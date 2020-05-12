@@ -1,6 +1,5 @@
 package com.xycode.leetcode;
 
-import com.xycode.heap.MinHeap;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -1348,6 +1347,51 @@ public class LeetCodeEx {
         System.out.println(calculate( "(1+(4+5+2)-3)+(6+8)"));
     }
 
+    //检查一个s的i到j的子串是否是回文串
+    private boolean checkPalindrome(String s,int i,int j){
+        while(i<j){
+            if(s.charAt(i)!=s.charAt(j)) return false;
+            ++i;
+            --j;
+        }
+        return true;
+    }
+
+    /**
+     * <p>214. Shortest Palindrome</p>
+     * 描述: 给定字符串s，您可以通过在字符串前面添加字符来将其转换为回文。查找并返回通过执行此转换可以找到的最短回文。
+     * @param s
+     * @return
+     */
+    public String shortestPalindrome(String s) {
+        if(s==null||s.length()<=1||checkPalindrome(s,0,s.length()-1)) return s;
+        int maxAdd=s.length()-1;
+        int i;
+        for(i=1;i<=maxAdd;++i){
+            int l=0,r=s.length()-1-i;
+            boolean flag=true;
+            while(l<r){
+                if(s.charAt(l)!=s.charAt(r)){
+                    flag=false;
+                    break;
+                }else{
+                    ++l;
+                    --r;
+                }
+            }
+            if(flag) break;
+        }
+
+        StringBuilder sb=new StringBuilder();
+        sb.append(s.substring(s.length()-i)).reverse();
+        sb.append(s);
+        return sb.toString();
+    }
+
+    @Test
+    public void testShortestPalindrome() {
+        System.out.println(shortestPalindrome("ccbb"));
+    }
 
     @Test
     public static void test_1(){

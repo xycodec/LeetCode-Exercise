@@ -103,7 +103,12 @@ public class LeetCodeList {
         return root;
     }
 
-    //109. Convert Sorted List to Binary Search Tree
+    /**
+     * <p>109. Convert Sorted List to Binary Search Tree</p>
+     * 根据一个有序数组建立一个平衡BST
+     * @param head
+     * @return
+     */
     public TreeNode sortedListToBST(ListNode head){
         if(head==null) return null;
         List<Integer> inorder=new ArrayList<>();
@@ -392,6 +397,143 @@ public class LeetCodeList {
             tail=tail.next;
         }
         return head;
+    }
+
+    //23. Merge k Sorted Lists
+    //tip 描述: 合并k个有序的链表
+    //时间复杂度:
+    public ListNode mergeKLists(ListNode[] lists) {
+        if(lists==null||lists.length==0) return null;
+        int k=lists.length;
+        PriorityQueue<ListNode> queue=new PriorityQueue<>(k,
+                Comparator.comparingInt(x -> x.val));
+        ListNode head=new ListNode(-1);//dummy node
+        for(int i=0;i<k;++i){
+            if(lists[i]!=null) {
+                queue.add(lists[i]);//当前节点的值 -> 下一个节点的引用
+            }
+        }
+
+        ListNode tmpNode=head;
+        while (!queue.isEmpty()){
+            ListNode minNode=queue.poll();//弹出一个最小值的节点
+            tmpNode.next=new ListNode(minNode.val);
+            tmpNode=tmpNode.next;
+            if(minNode.next!=null){
+                queue.add(minNode.next);//添加那个最小值节点后面的节点
+            }
+        }
+        return head.next;
+    }
+
+
+    //86. Partition List
+    //tip 描述: 给定一个值x, 划分一个链表,使得小于x的所有节点都在大于或等于x的节点之前,不要改变每个分区中节点的原始相对顺序
+    public ListNode partition(ListNode head, int x) {
+        ListNode lessNode=new ListNode(-1),greaterNode=new ListNode(-1);
+        ListNode tmpNode=head,tmpLessNode=lessNode,tmpGreaterNode=greaterNode;//设置两个dummyNode,用于链接<x和>=x的节点
+        while(tmpNode!=null){
+            if(tmpNode.val<x){
+                tmpLessNode.next=tmpNode;
+                tmpLessNode=tmpLessNode.next;
+            }else{
+                tmpGreaterNode.next=tmpNode;
+                tmpGreaterNode=tmpGreaterNode.next;
+            }
+            tmpNode=tmpNode.next;
+        }
+        tmpGreaterNode.next=null;//后一个链表要设置终止节点,否则可能出现环
+        tmpLessNode.next=greaterNode.next;//合并两个链表
+        return lessNode.next;//返回合并的链表头
+    }
+
+
+    /**
+     * <p>386. Lexicographical Numbers</p>
+     * 描述: 给定一个整数n, 按字典顺序返回1-n
+     * @param n
+     * @return
+     */
+    public List<Integer> lexicalOrder(int n) {
+//        List<String> ans=new ArrayList<>(n);
+//        for(int i=1;i<=n;++i){
+//            ans.add(String.valueOf(i));
+//        }
+//        Collections.sort(ans);
+//        return ans.parallelStream().map(Integer::parseInt).collect(Collectors.toList());
+
+        List<Integer> ans=new ArrayList<>(n);
+        for(int i=1;i<=n;++i){
+            ans.add(i);
+        }
+        Collections.sort(ans, Comparator.comparing(String::valueOf));
+        return ans;
+    }
+
+    @Test
+    public void testLexicalOrder() {
+        System.out.println(lexicalOrder(13));
+    }
+
+
+    /**
+     * <p>1094. Car Pooling</p>
+     * 描述: 给定一个行程列表trips, trips[i]=[num_passengers，start_location，end_location],在给出车辆容量capacity,计算是否能抵达终点
+     * @param trips
+     * @param capacity
+     * @return
+     */
+    public boolean carPooling(int[][] trips, int capacity) {
+        if(trips==null||trips.length==0) return true;
+        if(capacity<0) return false;
+        Arrays.sort(trips, Comparator.comparingInt(x -> x[1]));
+        for(int i=0;i<trips.length;++i){
+            int tmp=trips[i][0];
+            for(int j=0;j<i;++j){
+                if(trips[i][1]<trips[j][2]){
+                    tmp+=trips[j][0];
+                    if(tmp>capacity) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Test
+    public void testCarPooling() {
+        System.out.println(carPooling(new int[][]{
+                {2,1,5},{3,5,7}
+        },4));
+    }
+
+    /**
+     * <p>327. Count of Range Sum</p>
+     * 描述: 给定一个整数数组nums,返回[lower，upper]中包含的子数组和的数目,子数组和定义为索引i到j（i≤j）之间的nums元素之和.
+     * @param nums
+     * @param lower
+     * @param upper
+     * @return
+     */
+    public int countRangeSum(int[] nums, int lower, int upper) {
+        if (nums == null || nums.length == 0) return 0;
+        long[] sums = new long[nums.length];
+        sums[0] = nums[0];
+        for (int i = 1; i < nums.length; i++) sums[i] = sums[i - 1] + nums[i];
+        int ans = 0;
+        TreeMap<Long, Integer> treeMap = new TreeMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            if (lower <= sums[i] && sums[i] <= upper) ans++;
+            for (Integer count : treeMap.subMap(sums[i] - upper, true, sums[i] - lower, true).values()) {
+                ans += count;
+            }
+            treeMap.put(sums[i], treeMap.getOrDefault(sums[i], 0) + 1);
+        }
+        return ans;
+    }
+
+    @Test
+    public void testCountRangeSum() {
+        System.out.println(countRangeSum(new int[]{0,0},0,0));
     }
 
 }

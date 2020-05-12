@@ -1,4 +1,4 @@
-package com.xycode.nowcoderEX;
+package com.xycode.interview;
 
 import java.io.BufferedReader;
 import java.io.IOException;
