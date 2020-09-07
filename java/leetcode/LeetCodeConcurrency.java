@@ -19,8 +19,9 @@ public class LeetCodeConcurrency {
 
     //1114. Print in Order
     public class Foo {
-        CountDownLatch firstSecond =new CountDownLatch(1);
-        CountDownLatch secondThree =new CountDownLatch(1);
+        CountDownLatch firstSecond = new CountDownLatch(1);
+        CountDownLatch secondThree = new CountDownLatch(1);
+
         public Foo() {
 
         }
@@ -51,8 +52,9 @@ public class LeetCodeConcurrency {
     //1115. Print FooBar Alternately
     class FooBar {
         private int n;
-        CountDownLatch countDownLatch1=new CountDownLatch(1);
-        CountDownLatch countDownLatch2=new CountDownLatch(1);
+        CountDownLatch countDownLatch1 = new CountDownLatch(1);
+        CountDownLatch countDownLatch2 = new CountDownLatch(1);
+
         public FooBar(int n) {
             this.n = n;
         }
@@ -65,7 +67,7 @@ public class LeetCodeConcurrency {
                 printFoo.run();
                 countDownLatch1.countDown();
                 countDownLatch2.await();
-                countDownLatch2=new CountDownLatch(1);
+                countDownLatch2 = new CountDownLatch(1);
             }
         }
 
@@ -73,7 +75,7 @@ public class LeetCodeConcurrency {
 
             for (int i = 0; i < n; i++) {
                 countDownLatch1.await();
-                countDownLatch1=new CountDownLatch(1);
+                countDownLatch1 = new CountDownLatch(1);
                 // printBar.run() outputs "bar". Do not change or remove this line.
                 printBar.run();
                 countDownLatch2.countDown();
@@ -85,15 +87,16 @@ public class LeetCodeConcurrency {
     class ZeroEvenOdd {
         private int n;
         private Queue<Integer> queue;
-        private Object o=new Object();
+        private Object o = new Object();
+
         public ZeroEvenOdd(int n) {
             this.n = n;
-            queue=new LinkedList<>();
-            for(int i=1;i<=2*n;++i){
-                if(i%2==1){
+            queue = new LinkedList<>();
+            for (int i = 1; i <= 2 * n; ++i) {
+                if (i % 2 == 1) {
                     queue.add(0);
-                }else{
-                    queue.add(i/2);
+                } else {
+                    queue.add(i / 2);
                 }
             }
 //            while(!queue.isEmpty()){
@@ -103,9 +106,9 @@ public class LeetCodeConcurrency {
 
         // printNumber.accept(x) outputs "x", where x is an integer.
         public synchronized void zero(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()==0){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() == 0) {
                         printNumber.accept(queue.poll());
                     }
                 }
@@ -114,9 +117,9 @@ public class LeetCodeConcurrency {
         }
 
         public void even(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()!=0&&queue.peek()%2==0){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() != 0 && queue.peek() % 2 == 0) {
                         printNumber.accept(queue.poll());
 
                     }
@@ -126,9 +129,9 @@ public class LeetCodeConcurrency {
         }
 
         public void odd(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%2==1){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() % 2 == 1) {
                         printNumber.accept(queue.poll());
                     }
                 }
@@ -139,9 +142,10 @@ public class LeetCodeConcurrency {
 
     //1117 Building H2O
     class H2O {
-        private Semaphore h=new Semaphore(2);
-        private Semaphore o=new Semaphore(1);
-        private AtomicInteger count=new AtomicInteger(0);
+        private Semaphore h = new Semaphore(2);
+        private Semaphore o = new Semaphore(1);
+        private AtomicInteger count = new AtomicInteger(0);
+
         public H2O() {
 
         }
@@ -151,7 +155,7 @@ public class LeetCodeConcurrency {
             count.incrementAndGet();
             // releaseHydrogen.run() outputs "H". Do not change or remove this line.
             releaseHydrogen.run();
-            if(count.get()==2){
+            if (count.get() == 2) {
                 count.addAndGet(-2);
                 o.release();
             }
@@ -170,20 +174,21 @@ public class LeetCodeConcurrency {
     class FizzBuzz {
         private int n;
         private Queue<Integer> queue;
-        private Object o=new Object();
+        private Object o = new Object();
+
         public FizzBuzz(int n) {
             this.n = n;
-            this.queue=new LinkedList<>();
-            for(int i=1;i<=n;++i){
+            this.queue = new LinkedList<>();
+            for (int i = 1; i <= n; ++i) {
                 this.queue.add(i);
             }
         }
 
         // printFizz.run() outputs "fizz".
         public void fizz(Runnable printFizz) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%3==0&&queue.peek()%5!=0){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() % 3 == 0 && queue.peek() % 5 != 0) {
                         printFizz.run();
                         queue.poll();
                     }
@@ -194,9 +199,9 @@ public class LeetCodeConcurrency {
 
         // printBuzz.run() outputs "buzz".
         public void buzz(Runnable printBuzz) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%5==0&&queue.peek()%3!=0){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() % 5 == 0 && queue.peek() % 3 != 0) {
                         printBuzz.run();
                         queue.poll();
                     }
@@ -207,9 +212,9 @@ public class LeetCodeConcurrency {
 
         // printFizzBuzz.run() outputs "fizzbuzz".
         public void fizzbuzz(Runnable printFizzBuzz) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%5==0&&queue.peek()%3!=0){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() % 5 == 0 && queue.peek() % 3 != 0) {
                         printFizzBuzz.run();
                         queue.poll();
                     }
@@ -220,9 +225,9 @@ public class LeetCodeConcurrency {
 
         // printNumber.accept(x) outputs "x", where x is an integer.
         public void number(IntConsumer printNumber) throws InterruptedException {
-            while(!queue.isEmpty()){
-                synchronized (o){
-                    while(!queue.isEmpty()&&queue.peek()%5!=0&&queue.peek()%3!=0){
+            while (!queue.isEmpty()) {
+                synchronized (o) {
+                    while (!queue.isEmpty() && queue.peek() % 5 != 0 && queue.peek() % 3 != 0) {
                         printNumber.accept(queue.poll());
                     }
                 }
@@ -235,11 +240,12 @@ public class LeetCodeConcurrency {
     class DiningPhilosophers {
         private Queue<Integer> queue;
         private Object o;
+
         public DiningPhilosophers() {
-            queue=new ArrayDeque<>(300);
-            o=new Object();
-            List<Integer> tmp=new ArrayList<>(Arrays.asList(0,1,2,3,4));
-            for(int i=0;i<60;++i){
+            queue = new ArrayDeque<>(300);
+            o = new Object();
+            List<Integer> tmp = new ArrayList<>(Arrays.asList(0, 1, 2, 3, 4));
+            for (int i = 0; i < 60; ++i) {
                 Collections.shuffle(tmp);
                 queue.addAll(tmp);
             }
@@ -252,9 +258,9 @@ public class LeetCodeConcurrency {
                                Runnable eat,
                                Runnable putLeftFork,
                                Runnable putRightFork) throws InterruptedException {
-            while (true){
-                synchronized (o){
-                    if(philosopher==queue.peek()){
+            while (true) {
+                synchronized (o) {
+                    if (philosopher == queue.peek()) {
                         pickLeftFork.run();
                         pickRightFork.run();
                         eat.run();
