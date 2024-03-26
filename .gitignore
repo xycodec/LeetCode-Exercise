@@ -1,3 +1,4 @@
 *.exe
 test*
 shell.py
+target
